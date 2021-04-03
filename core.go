@@ -31,6 +31,9 @@ const GORM = "gorm"
 // CACHE a cache engine variable
 const CACHE = "cache"
 
+// JWT is jwt package variable
+const JWT = "jwt"
+
 // logs file path
 const logsFilePath = "logs/app.log"
 

@@ -6,7 +6,7 @@ package core
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/gincoat/core/jwtloader"
+	"github.com/gocondor/core/jwtloader"
 )
 
 // RegisterJwt returns a gin handler func with jwt variable set in gin context

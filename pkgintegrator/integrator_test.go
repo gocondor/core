@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/gin-gonic/gin"
-	. "github.com/gincoat/core/pkgintegrator"
+	. "github.com/gocondor/core/pkgintegrator"
 )
 
 func TestNew(t *testing.T) {

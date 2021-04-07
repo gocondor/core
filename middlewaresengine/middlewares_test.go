@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/gin-gonic/gin"
-	. "github.com/gincoat/core/middlewaresengine"
+	. "github.com/gocondor/core/middlewaresengine"
 )
 
 func TestNew(t *testing.T) {

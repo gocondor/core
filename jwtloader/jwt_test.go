@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/gin-gonic/gin"
-	. "github.com/gincoat/core/jwtloader"
+	. "github.com/gocondor/core/jwtloader"
 )
 
 func TestCreateToken(t *testing.T) {

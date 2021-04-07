@@ -11,11 +11,11 @@ import (
 	"testing"
 
 	"github.com/gin-gonic/gin"
-	. "github.com/gincoat/core"
-	"github.com/gincoat/core/database"
-	"github.com/gincoat/core/middlewaresengine"
-	"github.com/gincoat/core/pkgintegrator"
-	"github.com/gincoat/core/routing"
+	. "github.com/gocondor/core"
+	"github.com/gocondor/core/database"
+	"github.com/gocondor/core/middlewaresengine"
+	"github.com/gocondor/core/pkgintegrator"
+	"github.com/gocondor/core/routing"
 	"github.com/joho/godotenv"
 )
 

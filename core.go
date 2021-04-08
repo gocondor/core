@@ -7,10 +7,12 @@ package core
 import (
 	"fmt"
 	"io"
+	"log"
 	"os"
 	"strconv"
 	"strings"
 
+	"github.com/gin-gonic/autotls"
 	"github.com/gin-gonic/gin"
 	"github.com/gocondor/core/cache"
 	"github.com/gocondor/core/database"
@@ -97,6 +99,7 @@ func (app *App) Run(portNumber string) {
 
 	httpsOn, _ := strconv.ParseBool(os.Getenv("APP_HTTPS_ON"))
 	redirectToHTTPS, _ := strconv.ParseBool(os.Getenv("APP_REDIRECT_HTTP_TO_HTTPS"))
+	letsencryptOn, _ := strconv.ParseBool(os.Getenv("APP_HTTPS_USE_LETSENCRYPT"))
 
 	if httpsOn {
 		//serve the https
@@ -106,6 +109,13 @@ func (app *App) Run(portNumber string) {
 		httpsGinEngine = app.IntegratePackages(pkgintegrator.Resolve().GetIntegrations(), httpsGinEngine)
 		httpsGinEngine = app.UseMiddlewares(middlewaresengine.Resolve().GetMiddlewares(), httpsGinEngine)
 		httpsGinEngine = app.RegisterRoutes(routing.Resolve().GetRoutes(), httpsGinEngine)
+
+		// use let's encrypt
+		if letsencryptOn {
+			go log.Fatal(autotls.Run(httpsGinEngine, app.GetHTTPSHost()))
+			return
+		}
+
 		go httpsGinEngine.RunTLS(host, certFile, keyFile)
 	}
 

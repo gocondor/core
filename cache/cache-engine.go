@@ -6,6 +6,7 @@ package cache
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"strconv"
 	"time"
@@ -29,14 +30,16 @@ var cEngine *CacheEngine
 // New initiates a new caching engine
 func New() *CacheEngine {
 	redisCTX = context.Background()
-	ttl, _ := strconv.ParseUint(os.Getenv("REDIS_TTL_SECONDS"), 10, 64)
-	redisTTL = time.Duration(ttl)
+	host := os.Getenv("REDIS_HOST")
+	port := os.Getenv("REDIS_PORT")
+	password := os.Getenv("REDIS_PASSWORD")
+	dbName, _ := strconv.ParseInt(os.Getenv("REDIS_DB_NAME"), 10, 32)
 
 	cEngine = &CacheEngine{
 		redisDB: redis.NewClient(&redis.Options{
-			Addr:     "localhost:6379",
-			Password: "", // no password set
-			DB:       0,  // use default DB
+			Addr:     fmt.Sprintf("%s:%s", host, port),
+			Password: password,
+			DB:       int(dbName),
 		}),
 	}
 	return cEngine
@@ -49,7 +52,7 @@ func Resolve() *CacheEngine {
 
 // Set set a key, val pair in the cache
 func (c *CacheEngine) Set(key string, val string) (bool, error) {
-	status := c.redisDB.Set(redisCTX, key, val, redisTTL)
+	status := c.redisDB.Set(redisCTX, key, val, 0)
 	if status.Err() != nil {
 		return false, status.Err()
 	}
@@ -64,4 +67,14 @@ func (c *CacheEngine) Get(key string) (interface{}, error) {
 		return false, err
 	}
 	return val, nil
+}
+
+// Del removes a record from cache by a given key
+func (c *CacheEngine) Delete(key string) error {
+	status := c.redisDB.Del(redisCTX, key)
+	if status.Err() != nil {
+		return status.Err()
+	}
+
+	return nil
 }

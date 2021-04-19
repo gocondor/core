@@ -19,8 +19,8 @@ import (
 // JwtLoader pakcage struct
 type JwtLoader struct{}
 
-var defaultLifeSpan time.Duration = 15             //15 minutes
-var defaultRefreshTokenLifeSpan time.Duration = 24 //24 hours
+var DefaultTokenLifeSpan time.Duration = 15 * time.Minute           //15 minutes
+var DefaultRefreshTokenLifeSpanHours time.Duration = 24 * time.Hour //24 hours
 
 var jwtLoader *JwtLoader
 
@@ -43,17 +43,17 @@ func (j *JwtLoader) CreateToken(payload map[string]string) (string, error) {
 	var duration time.Duration
 	durationStr := os.Getenv("JWT_LIFESPAN_MINUTES")
 	if durationStr == "" {
-		duration = defaultLifeSpan
+		duration = DefaultTokenLifeSpan
 	} else {
 		d, _ := strconv.ParseInt(durationStr, 10, 64)
-		duration = time.Duration(d)
+		duration = time.Duration(d) * time.Minute
 	}
 
 	for key, val := range payload {
 		claims[key] = val
 	}
 	claims["authorized"] = true
-	claims["exp"] = time.Now().Add(time.Minute * duration).Unix()
+	claims["exp"] = time.Now().Add(duration).Unix()
 	jwtToken := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	secret := os.Getenv("JWT_SECRET")
 	if secret == "" {
@@ -72,19 +72,19 @@ func (j *JwtLoader) CreateRefreshToken(payload map[string]string) (string, error
 	claims := jwt.MapClaims{}
 
 	var duration time.Duration
-	durationStr := os.Getenv("JWT_REFRESH_TOKEN_LIFESPAN_HOURS")
-	if durationStr == "" {
-		duration = defaultRefreshTokenLifeSpan
+	durationStrHours := os.Getenv("JWT_REFRESH_TOKEN_LIFESPAN_HOURS")
+	if durationStrHours == "" {
+		duration = DefaultRefreshTokenLifeSpanHours
 	} else {
-		d, _ := strconv.ParseInt(durationStr, 10, 64)
-		duration = time.Duration(d)
+		d, _ := strconv.ParseInt(durationStrHours, 10, 64)
+		duration = time.Duration(d) * time.Hour
 	}
 
 	for key, val := range payload {
 		claims[key] = val
 	}
 	claims["refresh"] = true
-	claims["exp"] = time.Now().Add(time.Hour * duration).Unix()
+	claims["exp"] = time.Now().Add(duration).Unix()
 	jwtToken := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	secret := os.Getenv("JWT_REFRESH_TOKEN_SECRET")
 	if secret == "" {

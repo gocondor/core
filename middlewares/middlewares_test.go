@@ -11,14 +11,14 @@ import (
 func TestNew(t *testing.T) {
 	m := New()
 	if fmt.Sprintf("%T", m) != "*middlewares.MiddlewaresUtil" {
-		t.Errorf("Failed asserting middleware engine var initiation")
+		t.Errorf("Failed asserting middleware util var initiation")
 	}
 }
 
 func TestResolve(t *testing.T) {
 	m := Resolve()
 	if fmt.Sprintf("%T", m) != "*middlewares.MiddlewaresUtil" {
-		t.Errorf("Failed asserting middleware engine var resolve")
+		t.Errorf("Failed asserting middleware util var resolve")
 	}
 }
 

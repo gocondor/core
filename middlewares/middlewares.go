@@ -8,7 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// MiddlewaresEngine handles middlewares registration
+// MiddlewaresUtil handles middlewares registration
 type MiddlewaresUtil struct {
 	middlewares []gin.HandlerFunc
 }
@@ -18,13 +18,13 @@ type Middleware func(c *gin.Context)
 
 var middlewaresUtil *MiddlewaresUtil
 
-//New initiates a new middlware engine
+//New initiates a new middlware util
 func New() *MiddlewaresUtil {
 	middlewaresUtil = &MiddlewaresUtil{}
 	return middlewaresUtil
 }
 
-// Resolve returns an already initated middleware engine
+// Resolve returns an already initated middleware util
 func Resolve() *MiddlewaresUtil {
 	return middlewaresUtil
 }

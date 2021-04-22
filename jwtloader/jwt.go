@@ -19,7 +19,10 @@ import (
 // JwtLoader pakcage struct
 type JwtLoader struct{}
 
-var DefaultTokenLifeSpan time.Duration = 15 * time.Minute           //15 minutes
+// DefaultTokenLifeSpan is the default ttl for jwt token
+var DefaultTokenLifeSpan time.Duration = 15 * time.Minute //15 minutes
+
+// DefaultRefreshTokenLifeSpanHours is the default ttl for jwt refresh token
 var DefaultRefreshTokenLifeSpanHours time.Duration = 24 * time.Hour //24 hours
 
 var jwtLoader *JwtLoader

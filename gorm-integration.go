@@ -9,7 +9,7 @@ import (
 	"gorm.io/gorm"
 )
 
-//Mysql returns a gin handler func with db set in gin.Context
+// GORMIntegrator returns a gin handler func with db set in gin.Context
 func GORMIntegrator(gorm *gorm.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		c.Set("gorm", gorm)

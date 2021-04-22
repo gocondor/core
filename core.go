@@ -148,6 +148,7 @@ func (app *App) Run(portNumber string) {
 	httpGinEngine.Run(host)
 }
 
+// SetAppMode set the mode if the app (debug|test|release)
 func (app *App) SetAppMode(mode string) {
 	if mode == gin.ReleaseMode || mode == gin.TestMode || mode == gin.DebugMode {
 		gin.SetMode(mode)
@@ -156,6 +157,7 @@ func (app *App) SetAppMode(mode string) {
 	}
 }
 
+// IntegratePackages helps with attaching packages to gin context
 func (app *App) IntegratePackages(handlerFuncs []gin.HandlerFunc, engine *gin.Engine) *gin.Engine {
 	for _, pkgIntegration := range handlerFuncs {
 		engine.Use(pkgIntegration)
@@ -169,6 +171,7 @@ func (app *App) SetEnabledFeatures(features *Features) {
 	app.Features = features
 }
 
+// UseMiddlewares use middlewares by gin engine
 func (app *App) UseMiddlewares(middlewares []gin.HandlerFunc, engine *gin.Engine) *gin.Engine {
 	for _, middleware := range middlewares {
 		engine.Use(middleware)
@@ -177,6 +180,7 @@ func (app *App) UseMiddlewares(middlewares []gin.HandlerFunc, engine *gin.Engine
 	return engine
 }
 
+// RegisterRoutes register routes on gin engine
 func (app *App) RegisterRoutes(routers []routing.Route, engine *gin.Engine) *gin.Engine {
 	for _, route := range routers {
 		switch route.Method {
@@ -200,6 +204,7 @@ func (app *App) RegisterRoutes(routers []routing.Route, engine *gin.Engine) *gin
 	return engine
 }
 
+// GetHTTPSHost returns https host name
 func (app *App) GetHTTPSHost() string {
 	host := os.Getenv("APP_HTTPS_HOST")
 	//if not set get http instead
@@ -213,6 +218,7 @@ func (app *App) GetHTTPSHost() string {
 	return host
 }
 
+// GetHTTPHost returns http host name
 func (app *App) GetHTTPHost() string {
 	host := os.Getenv("APP_HTTP_HOST")
 	//if both not set use local host

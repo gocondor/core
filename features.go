@@ -4,6 +4,7 @@
 
 package core
 
+// Features fetatures of the framework
 type Features struct {
 	Database bool
 	Cache    bool

@@ -104,7 +104,7 @@ func TestRegisterRoutes(t *testing.T) {
 	var result ResultStruct
 	json.Unmarshal(body, &result)
 	if result.Name != "jack" {
-		t.Errorf("failed assert execution of registerd route")
+		t.Errorf("failed assert execution of registered route")
 	}
 }
 

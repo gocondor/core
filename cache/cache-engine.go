@@ -69,7 +69,7 @@ func (c *CacheEngine) Get(key string) (interface{}, error) {
 	return val, nil
 }
 
-// Del removes a record from cache by a given key
+// Delete removes a record from cache by a given key
 func (c *CacheEngine) Delete(key string) error {
 	status := c.redisDB.Del(redisCTX, key)
 	if status.Err() != nil {

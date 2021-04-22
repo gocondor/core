@@ -18,25 +18,25 @@ type Middleware func(c *gin.Context)
 
 var mwEngine *MiddlewaresEngine
 
-//NewMiddlewareEngine initiate a new middlware engine
+//New initiates a new middlware engine
 func New() *MiddlewaresEngine {
 	mwEngine = &MiddlewaresEngine{}
 	return mwEngine
 }
 
-//ResolveMiddlewaresEngine resolve an already initated middleware engine
+// Resolve returns an already initated middleware engine
 func Resolve() *MiddlewaresEngine {
 	return mwEngine
 }
 
-//Attach attach a middleware globally to the app
+// Attach attach a middleware globally to the app
 func (m *MiddlewaresEngine) Attach(mw gin.HandlerFunc) *MiddlewaresEngine {
 	m.middlewares = append(m.middlewares, mw)
 
 	return mwEngine
 }
 
-//GetMiddlewares get all attached middlewares
+// GetMiddlewares get all attached middlewares
 func (m *MiddlewaresEngine) GetMiddlewares() []gin.HandlerFunc {
 	return m.middlewares
 }

@@ -65,6 +65,7 @@ func prepareMysql() (*gorm.DB, error) {
 	return db, nil
 }
 
+// Resolve returns an the intitiated gorm
 func Resolve() *gorm.DB {
 	return db
 }

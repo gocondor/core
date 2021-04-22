@@ -16,8 +16,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gocondor/core/cache"
 	"github.com/gocondor/core/database"
-	"github.com/gocondor/core/middlewaresengine"
-	"github.com/gocondor/core/pkgintegrator"
+	"github.com/gocondor/core/middlewares"
 	"github.com/gocondor/core/routing"
 	"github.com/unrolled/secure"
 )
@@ -32,9 +31,6 @@ const GORM = "gorm"
 
 // CACHE a cache engine variable
 const CACHE = "cache"
-
-// JWT is jwt package variable
-const JWT = "jwt"
 
 // logs file path
 const logsFilePath = "logs/app.log"
@@ -58,11 +54,8 @@ func (app *App) SetEnv(env map[string]string) {
 
 //Bootstrap initiate app
 func (app *App) Bootstrap() {
-	//initiate package integrator variable
-	pkgintegrator.New()
-
 	//initiate middlewares engine varialbe
-	middlewaresengine.New()
+	middlewares.New()
 
 	//initiate routing engine varialbe
 	routing.New()
@@ -106,8 +99,7 @@ func (app *App) Run(portNumber string) {
 		certFile := os.Getenv("APP_HTTPS_CERT_FILE_PATH")
 		keyFile := os.Getenv("APP_HTTPS_KEY_FILE_PATH")
 		host := app.GetHTTPSHost() + ":443"
-		httpsGinEngine = app.IntegratePackages(pkgintegrator.Resolve().GetIntegrations(), httpsGinEngine)
-		httpsGinEngine = app.UseMiddlewares(middlewaresengine.Resolve().GetMiddlewares(), httpsGinEngine)
+		httpsGinEngine = app.UseMiddlewares(middlewares.Resolve().GetMiddlewares(), httpsGinEngine)
 		httpsGinEngine = app.RegisterRoutes(routing.Resolve().GetRoutes(), httpsGinEngine)
 
 		// use let's encrypt
@@ -141,8 +133,7 @@ func (app *App) Run(portNumber string) {
 	}
 
 	//serve the http version
-	httpGinEngine = app.IntegratePackages(pkgintegrator.Resolve().GetIntegrations(), httpGinEngine)
-	httpGinEngine = app.UseMiddlewares(middlewaresengine.Resolve().GetMiddlewares(), httpGinEngine)
+	httpGinEngine = app.UseMiddlewares(middlewares.Resolve().GetMiddlewares(), httpGinEngine)
 	httpGinEngine = app.RegisterRoutes(routing.Resolve().GetRoutes(), httpGinEngine)
 	host := fmt.Sprintf("%s:%s", app.GetHTTPHost(), portNumber)
 	httpGinEngine.Run(host)

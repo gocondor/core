@@ -1,24 +1,24 @@
-package middlewaresengine_test
+package middlewares_test
 
 import (
 	"fmt"
 	"testing"
 
 	"github.com/gin-gonic/gin"
-	. "github.com/gocondor/core/middlewaresengine"
+	. "github.com/gocondor/core/middlewares"
 )
 
 func TestNew(t *testing.T) {
 	m := New()
-	if fmt.Sprintf("%T", m) != "*middlewaresengine.MiddlewaresEngine" {
-		t.Errorf("Failed asserting middleware engine var initiation")
+	if fmt.Sprintf("%T", m) != "*middlewares.MiddlewaresUtil" {
+		t.Errorf("Failed asserting middleware util var initiation")
 	}
 }
 
 func TestResolve(t *testing.T) {
 	m := Resolve()
-	if fmt.Sprintf("%T", m) != "*middlewaresengine.MiddlewaresEngine" {
-		t.Errorf("Failed asserting middleware engine var resolve")
+	if fmt.Sprintf("%T", m) != "*middlewares.MiddlewaresUtil" {
+		t.Errorf("Failed asserting middleware util var resolve")
 	}
 }
 

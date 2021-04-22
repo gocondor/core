@@ -13,8 +13,7 @@ import (
 	"github.com/gin-gonic/gin"
 	. "github.com/gocondor/core"
 	"github.com/gocondor/core/database"
-	"github.com/gocondor/core/middlewaresengine"
-	"github.com/gocondor/core/pkgintegrator"
+	"github.com/gocondor/core/middlewares"
 	"github.com/gocondor/core/routing"
 	"github.com/joho/godotenv"
 )
@@ -135,14 +134,9 @@ func TestBootstrap(t *testing.T) {
 	app.SetEnabledFeatures(Features)
 	app.Bootstrap()
 
-	i := pkgintegrator.Resolve()
-	if i == nil || fmt.Sprintf("%T", i) != "*pkgintegrator.PKGIntegrator" {
-		t.Errorf("failed asserting the initiation of PKGIntegrator")
-	}
-
-	m := middlewaresengine.Resolve()
-	if m == nil || fmt.Sprintf("%T", m) != "*middlewaresengine.MiddlewaresEngine" {
-		t.Errorf("failed asserting the initiation of MiddlewaresEngine")
+	m := middlewares.Resolve()
+	if m == nil || fmt.Sprintf("%T", m) != "*middlewares.MiddlewaresUtil" {
+		t.Errorf("failed asserting the initiation of MiddlewaresUtil")
 	}
 
 	r := routing.Resolve()

@@ -2,41 +2,41 @@
 // Use of this source code is governed by MIT-style
 // license that can be found in the LICENSE file.
 
-package middlewaresengine
+package middlewares
 
 import (
 	"github.com/gin-gonic/gin"
 )
 
 // MiddlewaresEngine handles middlewares registration
-type MiddlewaresEngine struct {
+type MiddlewaresUtil struct {
 	middlewares []gin.HandlerFunc
 }
 
 //Middleware a function defines a middleware
 type Middleware func(c *gin.Context)
 
-var mwEngine *MiddlewaresEngine
+var middlewaresUtil *MiddlewaresUtil
 
 //New initiates a new middlware engine
-func New() *MiddlewaresEngine {
-	mwEngine = &MiddlewaresEngine{}
-	return mwEngine
+func New() *MiddlewaresUtil {
+	middlewaresUtil = &MiddlewaresUtil{}
+	return middlewaresUtil
 }
 
 // Resolve returns an already initated middleware engine
-func Resolve() *MiddlewaresEngine {
-	return mwEngine
+func Resolve() *MiddlewaresUtil {
+	return middlewaresUtil
 }
 
 // Attach attach a middleware globally to the app
-func (m *MiddlewaresEngine) Attach(mw gin.HandlerFunc) *MiddlewaresEngine {
+func (m *MiddlewaresUtil) Attach(mw gin.HandlerFunc) *MiddlewaresUtil {
 	m.middlewares = append(m.middlewares, mw)
 
-	return mwEngine
+	return middlewaresUtil
 }
 
 // GetMiddlewares get all attached middlewares
-func (m *MiddlewaresEngine) GetMiddlewares() []gin.HandlerFunc {
+func (m *MiddlewaresUtil) GetMiddlewares() []gin.HandlerFunc {
 	return m.middlewares
 }

@@ -166,7 +166,7 @@ func (app *App) IntegratePackages(handlerFuncs []gin.HandlerFunc, engine *gin.En
 	return engine
 }
 
-//FeaturesControl to control what features to turn on or off
+//SetEnabledFeatures to control what features to turn on or off
 func (app *App) SetEnabledFeatures(features *Features) {
 	app.Features = features
 }

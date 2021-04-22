@@ -20,6 +20,7 @@ func New() *PKGIntegrator {
 	return integrator
 }
 
+// Resolve returns intitiated PKGIntegrator
 func Resolve() *PKGIntegrator {
 	return integrator
 }

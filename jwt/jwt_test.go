@@ -1,4 +1,4 @@
-package jwtloader_test
+package jwt_test
 
 import (
 	"net/http"
@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/gin-gonic/gin"
-	. "github.com/gocondor/core/jwtloader"
+	. "github.com/gocondor/core/jwt"
 )
 
 func TestCreateToken(t *testing.T) {

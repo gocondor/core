@@ -2,7 +2,7 @@
 // Use of this source code is governed by MIT-style
 // license that can be found in the LICENSE file.
 
-package jwtloader
+package jwt
 
 import (
 	"errors"
@@ -16,8 +16,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// JwtLoader pakcage struct
-type JwtLoader struct{}
+// JWTUtil pakcage struct
+type JWTUtil struct{}
 
 // DefaultTokenLifeSpan is the default ttl for jwt token
 var DefaultTokenLifeSpan time.Duration = 15 * time.Minute //15 minutes
@@ -25,21 +25,21 @@ var DefaultTokenLifeSpan time.Duration = 15 * time.Minute //15 minutes
 // DefaultRefreshTokenLifeSpanHours is the default ttl for jwt refresh token
 var DefaultRefreshTokenLifeSpanHours time.Duration = 24 * time.Hour //24 hours
 
-var jwtLoader *JwtLoader
+var JWT *JWTUtil
 
 // New initiates Jwt struct
-func New() *JwtLoader {
-	jwtLoader = &JwtLoader{}
-	return jwtLoader
+func New() *JWTUtil {
+	JWT = &JWTUtil{}
+	return JWT
 }
 
 //Resolve returns initiated jwt token
-func Resolve() *JwtLoader {
-	return jwtLoader
+func Resolve() *JWTUtil {
+	return JWT
 }
 
 // CreateToken generates new jwt token with the given payload
-func (j *JwtLoader) CreateToken(payload map[string]string) (string, error) {
+func (j *JWTUtil) CreateToken(payload map[string]string) (string, error) {
 
 	claims := jwt.MapClaims{}
 
@@ -71,7 +71,7 @@ func (j *JwtLoader) CreateToken(payload map[string]string) (string, error) {
 }
 
 // CreateRefreshToken generates new jwt refresh token with the given payload
-func (j *JwtLoader) CreateRefreshToken(payload map[string]string) (string, error) {
+func (j *JWTUtil) CreateRefreshToken(payload map[string]string) (string, error) {
 	claims := jwt.MapClaims{}
 
 	var duration time.Duration
@@ -102,7 +102,7 @@ func (j *JwtLoader) CreateRefreshToken(payload map[string]string) (string, error
 }
 
 //ExtractToken extracts the token from the request header
-func (j *JwtLoader) ExtractToken(c *gin.Context) (token string, err error) {
+func (j *JWTUtil) ExtractToken(c *gin.Context) (token string, err error) {
 	sentTokenSlice := c.Request.Header["Authorization"]
 	if len(sentTokenSlice) == 0 {
 		return "", errors.New("Missing authorization token")
@@ -116,7 +116,7 @@ func (j *JwtLoader) ExtractToken(c *gin.Context) (token string, err error) {
 }
 
 // DecodeToken decodes a given token and returns the payload
-func (j *JwtLoader) DecodeToken(tokenString string) (payload map[string]interface{}, err error) {
+func (j *JWTUtil) DecodeToken(tokenString string) (payload map[string]interface{}, err error) {
 	// validate the token
 	_, err = j.ValidateToken(tokenString)
 	if err != nil {
@@ -136,7 +136,7 @@ func (j *JwtLoader) DecodeToken(tokenString string) (payload map[string]interfac
 }
 
 // ValidateToken makes sure the given token is valid
-func (j *JwtLoader) ValidateToken(tokenString string) (bool, error) {
+func (j *JWTUtil) ValidateToken(tokenString string) (bool, error) {
 	// parse the token string
 	_, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		// validate the signing method

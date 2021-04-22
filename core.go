@@ -17,7 +17,6 @@ import (
 	"github.com/gocondor/core/cache"
 	"github.com/gocondor/core/database"
 	"github.com/gocondor/core/middlewares"
-	"github.com/gocondor/core/pkgintegrator"
 	"github.com/gocondor/core/routing"
 	"github.com/unrolled/secure"
 )
@@ -55,9 +54,6 @@ func (app *App) SetEnv(env map[string]string) {
 
 //Bootstrap initiate app
 func (app *App) Bootstrap() {
-	//initiate package integrator variable
-	pkgintegrator.New()
-
 	//initiate middlewares engine varialbe
 	middlewares.New()
 
@@ -103,7 +99,6 @@ func (app *App) Run(portNumber string) {
 		certFile := os.Getenv("APP_HTTPS_CERT_FILE_PATH")
 		keyFile := os.Getenv("APP_HTTPS_KEY_FILE_PATH")
 		host := app.GetHTTPSHost() + ":443"
-		httpsGinEngine = app.IntegratePackages(pkgintegrator.Resolve().GetIntegrations(), httpsGinEngine)
 		httpsGinEngine = app.UseMiddlewares(middlewares.Resolve().GetMiddlewares(), httpsGinEngine)
 		httpsGinEngine = app.RegisterRoutes(routing.Resolve().GetRoutes(), httpsGinEngine)
 
@@ -138,7 +133,6 @@ func (app *App) Run(portNumber string) {
 	}
 
 	//serve the http version
-	httpGinEngine = app.IntegratePackages(pkgintegrator.Resolve().GetIntegrations(), httpGinEngine)
 	httpGinEngine = app.UseMiddlewares(middlewares.Resolve().GetMiddlewares(), httpGinEngine)
 	httpGinEngine = app.RegisterRoutes(routing.Resolve().GetRoutes(), httpGinEngine)
 	host := fmt.Sprintf("%s:%s", app.GetHTTPHost(), portNumber)

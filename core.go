@@ -18,6 +18,7 @@ import (
 	"github.com/gocondor/core/database"
 	"github.com/gocondor/core/middlewares"
 	"github.com/gocondor/core/routing"
+	"github.com/gocondor/core/sessions"
 	"github.com/unrolled/secure"
 )
 
@@ -89,6 +90,23 @@ func (app *App) Run(portNumber string) {
 	//initiate gin engines
 	httpGinEngine := gin.Default()
 	httpsGinEngine := gin.Default()
+
+	// initiate the Session
+	if app.Features.Sessions == true {
+		var sesMiddleware gin.HandlerFunc
+		ses := sessions.New()
+		d := os.Getenv("SESSION_DRIVER")
+		switch d {
+		case "redis":
+			sesMiddleware = ses.InitiateRedistore("mysecret", "mysession")
+		case "cookie":
+			sesMiddleware = ses.InitiateCookieStore("mysecret", "mysession")
+		case "memstore":
+			sesMiddleware = ses.InitiateMemstoreStore("mysecret", "mysession")
+		}
+		httpGinEngine.Use(sesMiddleware)
+		httpsGinEngine.Use(sesMiddleware)
+	}
 
 	httpsOn, _ := strconv.ParseBool(os.Getenv("APP_HTTPS_ON"))
 	redirectToHTTPS, _ := strconv.ParseBool(os.Getenv("APP_REDIRECT_HTTP_TO_HTTPS"))

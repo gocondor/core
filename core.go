@@ -60,6 +60,7 @@ func (app *App) Bootstrap() {
 
 	//initiate routing engine varialbe
 	routing.New()
+	routing.NewGroupsHolder()
 
 	//initiate data base varialb
 	if app.Features.Database == true {
@@ -119,6 +120,8 @@ func (app *App) Run(portNumber string) {
 		host := app.GetHTTPSHost() + ":443"
 		httpsGinEngine = app.UseMiddlewares(middlewares.Resolve().GetMiddlewares(), httpsGinEngine)
 		httpsGinEngine = app.RegisterRoutes(routing.Resolve().GetRoutes(), httpsGinEngine)
+		// register the groups routes
+		httpsGinEngine = app.RegisterRoutes(routing.ResolveGroupsHolder().GetGroupsRoutes(), httpsGinEngine)
 
 		// use let's encrypt
 		if letsencryptOn {
@@ -153,6 +156,9 @@ func (app *App) Run(portNumber string) {
 	//serve the http version
 	httpGinEngine = app.UseMiddlewares(middlewares.Resolve().GetMiddlewares(), httpGinEngine)
 	httpGinEngine = app.RegisterRoutes(routing.Resolve().GetRoutes(), httpGinEngine)
+	// register the groups routes
+	httpGinEngine = app.RegisterRoutes(routing.ResolveGroupsHolder().GetGroupsRoutes(), httpGinEngine)
+
 	host := fmt.Sprintf("%s:%s", app.GetHTTPHost(), portNumber)
 	httpGinEngine.Run(host)
 }

@@ -17,7 +17,7 @@ type Route struct {
 
 // Router handles routing
 type Router struct {
-	routes []Route
+	Routes []Route
 }
 
 var router *Router
@@ -37,7 +37,7 @@ func Resolve() *Router {
 
 // Get is a definition for get request
 func (r *Router) Get(path string, handlers ...gin.HandlerFunc) *Router {
-	r.routes = append(r.routes, Route{
+	r.Routes = append(r.Routes, Route{
 		Method:   "get",
 		Path:     path,
 		Handlers: handlers,
@@ -48,7 +48,7 @@ func (r *Router) Get(path string, handlers ...gin.HandlerFunc) *Router {
 
 // Post is a definition for post request
 func (r *Router) Post(path string, handlers ...gin.HandlerFunc) *Router {
-	r.routes = append(r.routes, Route{
+	r.Routes = append(r.Routes, Route{
 		Method:   "post",
 		Path:     path,
 		Handlers: handlers,
@@ -59,7 +59,7 @@ func (r *Router) Post(path string, handlers ...gin.HandlerFunc) *Router {
 
 // Delete is a definition for delete request
 func (r *Router) Delete(path string, handlers ...gin.HandlerFunc) *Router {
-	r.routes = append(r.routes, Route{
+	r.Routes = append(r.Routes, Route{
 		Method:   "delete",
 		Path:     path,
 		Handlers: handlers,
@@ -70,7 +70,7 @@ func (r *Router) Delete(path string, handlers ...gin.HandlerFunc) *Router {
 
 // Put is a definition for put request
 func (r *Router) Put(path string, handlers ...gin.HandlerFunc) *Router {
-	r.routes = append(r.routes, Route{
+	r.Routes = append(r.Routes, Route{
 		Method:   "put",
 		Path:     path,
 		Handlers: handlers,
@@ -81,7 +81,7 @@ func (r *Router) Put(path string, handlers ...gin.HandlerFunc) *Router {
 
 // Options is a definition for options request
 func (r *Router) Options(path string, handlers ...gin.HandlerFunc) *Router {
-	r.routes = append(r.routes, Route{
+	r.Routes = append(r.Routes, Route{
 		Method:   "options",
 		Path:     path,
 		Handlers: handlers,
@@ -92,7 +92,7 @@ func (r *Router) Options(path string, handlers ...gin.HandlerFunc) *Router {
 
 // Head is a definition for head request
 func (r *Router) Head(path string, handlers ...gin.HandlerFunc) *Router {
-	r.routes = append(r.routes, Route{
+	r.Routes = append(r.Routes, Route{
 		Method:   "head",
 		Path:     path,
 		Handlers: handlers,
@@ -103,5 +103,7 @@ func (r *Router) Head(path string, handlers ...gin.HandlerFunc) *Router {
 
 //GetRoutes returns all Defined routes
 func (r *Router) GetRoutes() []Route {
-	return r.routes
+	// get the routing groups
+	// combine the routing groups routes
+	return r.Routes
 }

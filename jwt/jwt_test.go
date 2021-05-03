@@ -65,7 +65,7 @@ func TestExtractToken(t *testing.T) {
 		}
 	})
 	s := httptest.NewServer(g)
-	token, _ := j.CreateToken(map[string]string{"dummykey": "dummyval"})
+	token, _ := j.CreateToken(map[string]interface{}{"dummykey": "dummyval"})
 	rq, _ := http.NewRequest("GET", s.URL, nil)
 	rq.Header.Set("Authorization", "bear: "+token)
 	_, err := s.Client().Do(rq)

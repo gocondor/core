@@ -14,8 +14,10 @@ import (
 
 	"github.com/gin-gonic/autotls"
 	"github.com/gin-gonic/gin"
+	"github.com/gocondor/core/auth"
 	"github.com/gocondor/core/cache"
 	"github.com/gocondor/core/database"
+	"github.com/gocondor/core/jwt"
 	"github.com/gocondor/core/middlewares"
 	"github.com/gocondor/core/routing"
 	"github.com/gocondor/core/sessions"
@@ -38,6 +40,9 @@ const logsFilePath = "logs/app.log"
 
 // logs file
 var logsFile *os.File
+
+// sessions middleware
+var sesMiddleware gin.HandlerFunc
 
 // New initiates the app struct
 func New() *App {
@@ -71,6 +76,10 @@ func (app *App) Bootstrap() {
 	if app.Features.Cache == true {
 		cache.New()
 	}
+
+	// initiate sessions
+	sesMiddleware = initSessions()
+
 }
 
 // Run execute the app
@@ -92,22 +101,14 @@ func (app *App) Run(portNumber string) {
 	httpGinEngine := gin.Default()
 	httpsGinEngine := gin.Default()
 
-	// initiate the Session
+	// use sessions
 	if app.Features.Sessions == true {
-		var sesMiddleware gin.HandlerFunc
-		ses := sessions.New()
-		d := os.Getenv("SESSION_DRIVER")
-		switch d {
-		case "redis":
-			sesMiddleware = ses.InitiateRedistore("mysecret", "mysession")
-		case "cookie":
-			sesMiddleware = ses.InitiateCookieStore("mysecret", "mysession")
-		case "memstore":
-			sesMiddleware = ses.InitiateMemstoreStore("mysecret", "mysession")
-		}
 		httpGinEngine.Use(sesMiddleware)
 		httpsGinEngine.Use(sesMiddleware)
 	}
+
+	// init auth
+	auth.New(sessions.Resolve(), jwt.Resolve())
 
 	httpsOn, _ := strconv.ParseBool(os.Getenv("APP_HTTPS_ON"))
 	redirectToHTTPS, _ := strconv.ParseBool(os.Getenv("APP_REDIRECT_HTTP_TO_HTTPS"))
@@ -241,4 +242,20 @@ func (app *App) GetHTTPHost() string {
 		host = "localhost"
 	}
 	return host
+}
+
+// initiate sessions
+func initSessions() gin.HandlerFunc {
+	ses := sessions.New()
+	d := os.Getenv("SESSION_DRIVER")
+	switch d {
+	case "redis":
+		return ses.InitiateRedistore("mysecret", "mysession")
+	case "cookie":
+		return ses.InitiateCookieStore("mysecret", "mysession")
+	case "memstore":
+		return ses.InitiateMemstoreStore("mysecret", "mysession")
+	default:
+		return ses.InitiateMemstoreStore("mysecret", "mysession")
+	}
 }

@@ -10,4 +10,5 @@ type Features struct {
 	Cache    bool
 	GRPC     bool
 	Sessions bool
+	Auth     bool
 }

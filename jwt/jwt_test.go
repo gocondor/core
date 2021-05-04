@@ -14,7 +14,7 @@ func TestCreateToken(t *testing.T) {
 	os.Setenv("JWT_SECRET", "qwertyuio")
 	os.Setenv("JWT_LIFESPAN_MINUTES", "15")
 
-	payload := map[string]string{
+	payload := map[string]interface{}{
 		"dummykey": "dummybar",
 	}
 	j := New()
@@ -34,7 +34,7 @@ func TestCreateRefreshToken(t *testing.T) {
 	os.Setenv("JWT_REFRESH_TOKEN_SECRET", "qwertyuio")
 	os.Setenv("JWT_REFRESH_TOKEN_LIFESPAN_HOURS", "15")
 
-	payload := map[string]string{
+	payload := map[string]interface{}{
 		"dummykey": "dummybar",
 	}
 	j := New()
@@ -65,7 +65,7 @@ func TestExtractToken(t *testing.T) {
 		}
 	})
 	s := httptest.NewServer(g)
-	token, _ := j.CreateToken(map[string]string{"dummykey": "dummyval"})
+	token, _ := j.CreateToken(map[string]interface{}{"dummykey": "dummyval"})
 	rq, _ := http.NewRequest("GET", s.URL, nil)
 	rq.Header.Set("Authorization", "bear: "+token)
 	_, err := s.Client().Do(rq)
@@ -88,7 +88,7 @@ func TestValidateToken(t *testing.T) {
 
 func TestDecodeToken(t *testing.T) {
 	j := New()
-	token, _ := j.CreateToken(map[string]string{"dummykey": "dummyval"})
+	token, _ := j.CreateToken(map[string]interface{}{"dummykey": "dummyval"})
 
 	payload, err := j.DecodeToken(token)
 	if err != nil {

@@ -39,7 +39,7 @@ func Resolve() *JWTUtil {
 }
 
 // CreateToken generates new jwt token with the given payload
-func (j *JWTUtil) CreateToken(payload map[string]string) (string, error) {
+func (j *JWTUtil) CreateToken(payload map[string]interface{}) (string, error) {
 
 	claims := jwt.MapClaims{}
 
@@ -71,7 +71,7 @@ func (j *JWTUtil) CreateToken(payload map[string]string) (string, error) {
 }
 
 // CreateRefreshToken generates new jwt refresh token with the given payload
-func (j *JWTUtil) CreateRefreshToken(payload map[string]string) (string, error) {
+func (j *JWTUtil) CreateRefreshToken(payload map[string]interface{}) (string, error) {
 	claims := jwt.MapClaims{}
 
 	var duration time.Duration

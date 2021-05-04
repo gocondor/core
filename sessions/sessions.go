@@ -17,7 +17,7 @@ var ses *Sessions
 
 // New initiate sessions var
 func New() *Sessions {
-	ses := &Sessions{}
+	ses = &Sessions{}
 	return ses
 }
 
@@ -58,6 +58,17 @@ func (s *Sessions) Set(key interface{}, val interface{}, c *gin.Context) {
 func (s *Sessions) Get(key interface{}, c *gin.Context) interface{} {
 	session := sessions.Default(c)
 	return session.Get(key)
+}
+
+// Get retrieves the key's value
+func (s *Sessions) Has(key interface{}, c *gin.Context) bool {
+	session := sessions.Default(c)
+	res := session.Get(key)
+	if res == nil {
+		return false
+	}
+
+	return true
 }
 
 // Get retrieves the key's value and delete it

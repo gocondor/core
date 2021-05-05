@@ -25,6 +25,8 @@ var DefaultTokenLifeSpan time.Duration = 15 * time.Minute //15 minutes
 // DefaultRefreshTokenLifeSpanHours is the default ttl for jwt refresh token
 var DefaultRefreshTokenLifeSpanHours time.Duration = 24 * time.Hour //24 hours
 
+var USER_ID = "userID"
+
 var JWT *JWTUtil
 
 // New initiates Jwt struct
@@ -38,8 +40,8 @@ func Resolve() *JWTUtil {
 	return JWT
 }
 
-// CreateToken generates new jwt token with the given payload
-func (j *JWTUtil) CreateToken(payload map[string]interface{}) (string, error) {
+// CreateToken generates new jwt token with the given user id
+func (j *JWTUtil) CreateToken(userID uint) (string, error) {
 
 	claims := jwt.MapClaims{}
 
@@ -52,9 +54,7 @@ func (j *JWTUtil) CreateToken(payload map[string]interface{}) (string, error) {
 		duration = time.Duration(d) * time.Minute
 	}
 
-	for key, val := range payload {
-		claims[key] = val
-	}
+	claims[USER_ID] = userID
 	claims["authorized"] = true
 	claims["exp"] = time.Now().Add(duration).Unix()
 	jwtToken := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
@@ -70,8 +70,8 @@ func (j *JWTUtil) CreateToken(payload map[string]interface{}) (string, error) {
 	return token, nil
 }
 
-// CreateRefreshToken generates new jwt refresh token with the given payload
-func (j *JWTUtil) CreateRefreshToken(payload map[string]interface{}) (string, error) {
+// CreateRefreshToken generates new jwt refresh token with the given user id
+func (j *JWTUtil) CreateRefreshToken(userID uint) (string, error) {
 	claims := jwt.MapClaims{}
 
 	var duration time.Duration
@@ -82,11 +82,7 @@ func (j *JWTUtil) CreateRefreshToken(payload map[string]interface{}) (string, er
 		d, _ := strconv.ParseInt(durationStrHours, 10, 64)
 		duration = time.Duration(d) * time.Hour
 	}
-
-	for key, val := range payload {
-		claims[key] = val
-	}
-	claims["refresh"] = true
+	claims[USER_ID] = userID
 	claims["exp"] = time.Now().Add(duration).Unix()
 	jwtToken := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	secret := os.Getenv("JWT_REFRESH_TOKEN_SECRET")
@@ -115,12 +111,12 @@ func (j *JWTUtil) ExtractToken(c *gin.Context) (token string, err error) {
 	return sentTokenSlice[1], nil
 }
 
-// DecodeToken decodes a given token and returns the payload
-func (j *JWTUtil) DecodeToken(tokenString string) (payload map[string]interface{}, err error) {
+// DecodeToken decodes a given token and returns the user id
+func (j *JWTUtil) DecodeToken(tokenString string) (userID uint, err error) {
 	// validate the token
 	_, err = j.ValidateToken(tokenString)
 	if err != nil {
-		return nil, err
+		return 0, err
 	}
 
 	//extract claims
@@ -132,7 +128,12 @@ func (j *JWTUtil) DecodeToken(tokenString string) (payload map[string]interface{
 	delete(claims, "authorized")
 	delete(claims, "exp")
 
-	return claims, nil
+	id, err := strconv.ParseInt(fmt.Sprintf("%v", claims[USER_ID]), 10, 32)
+	if err != nil {
+		return 0, err
+	}
+	userID = uint(id)
+	return userID, nil
 }
 
 // ValidateToken makes sure the given token is valid

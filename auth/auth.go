@@ -1,7 +1,6 @@
 package auth
 
 import (
-	"errors"
 	"fmt"
 	"strconv"
 
@@ -45,40 +44,39 @@ func (a *Auth) Login(userId uint, c *gin.Context) error {
 }
 
 // Logout logs the user out by id
-func (a *Auth) Logout(userId uint64, c *gin.Context) error {
-	// get the user id from the session and convert it to uint64
-	userIdS, err := strconv.ParseUint(fmt.Sprintf("%v", a.Ses.Get(USER_ID, c)), 10, 64)
-	if err != nil {
-		return err
-	}
-	// check if the user id in args matches the user id in the session
-	if userId == userIdS {
-		// delete the user id from the session
-		a.Ses.Delete(USER_ID, c)
-		return nil
-	}
+func (a *Auth) Logout(c *gin.Context) error {
+	// delete the user id from the session
+	a.Ses.Delete(USER_ID, c)
 
-	return errors.New("trying to logout different user")
+	return nil
 }
 
 // Check checks if a user is logged in
-func (a *Auth) Check(userId uint64, c *gin.Context) bool {
+func (a *Auth) Check(c *gin.Context) (bool, error) {
 	// if session doesn't have user id return false
 	if !a.Ses.Has(USER_ID, c) {
-		return false
+		return false, nil
 	}
 
-	// get the user id from the session and convert it to uint64
-	userIdS, err := strconv.ParseUint(fmt.Sprintf("%v", a.Ses.Get(USER_ID, c)), 10, 64)
+	id, err := strconv.ParseInt(fmt.Sprintf("%v", a.Ses.Get(USER_ID, c)), 10, 32)
 	if err != nil {
-		return false
+		return false, err
 	}
+	sessionUserId := uint(id)
 
-	// if the arg user id matches the session's user id he is authenticated
-	if userId == userIdS {
-		return true
+	// extract the token
+	token, err := a.JWT.ExtractToken(c)
+	if err != nil {
+		return false, err
 	}
-
-	// not authenticated
-	return false
+	// extract the token's user id
+	tokenUserId, err := a.JWT.DecodeToken(token)
+	if err != nil {
+		return false, err
+	}
+	// if the session's user id matches the token user id he is authenticated
+	if sessionUserId == tokenUserId {
+		return true, nil
+	}
+	return false, nil
 }

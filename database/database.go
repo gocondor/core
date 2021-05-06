@@ -35,7 +35,8 @@ func New() *gorm.DB {
 		}
 		db, err = gorm.Open(sqlite.Open(dbName), &gorm.Config{})
 		if err != nil {
-			panic("failed to connect database")
+			fmt.Println(err)
+			os.Exit(1)
 		}
 		return db
 	default:
@@ -59,7 +60,8 @@ func prepareMysql() (*gorm.DB, error) {
 	)
 	db, err = gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {
-		return nil, err
+		fmt.Println(err)
+		os.Exit(1)
 	}
 
 	return db, nil

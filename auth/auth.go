@@ -43,6 +43,17 @@ func (a *Auth) Login(userId uint, c *gin.Context) error {
 	return nil
 }
 
+// UserID returns authenticated user id
+func (a *Auth) UserID(c *gin.Context) (uint, error) {
+	id, err := strconv.ParseInt(fmt.Sprintf("%v", a.Ses.Get(USER_ID, c)), 10, 32)
+	if err != nil {
+		return 0, err
+	}
+	userID := uint(id)
+
+	return userID, nil
+}
+
 // Logout logs the user out by id
 func (a *Auth) Logout(c *gin.Context) error {
 	// delete the user id from the session

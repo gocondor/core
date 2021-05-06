@@ -6,9 +6,9 @@ package core
 
 // Features fetatures of the framework
 type Features struct {
-	Database bool
-	Cache    bool
-	GRPC     bool
-	Sessions bool
-	Auth     bool
+	Database       bool
+	Cache          bool
+	GRPC           bool
+	Sessions       bool
+	Authentication bool
 }

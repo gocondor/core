@@ -14,12 +14,10 @@ func TestCreateToken(t *testing.T) {
 	os.Setenv("JWT_SECRET", "qwertyuio")
 	os.Setenv("JWT_LIFESPAN_MINUTES", "15")
 
-	payload := map[string]interface{}{
-		"dummykey": "dummybar",
-	}
+	var userID uint = 333
 	j := New()
 
-	token, err := j.CreateToken(payload)
+	token, err := j.CreateToken(userID)
 	if err != nil {
 		t.Error("failed create new jwt token.", err)
 	}
@@ -34,12 +32,10 @@ func TestCreateRefreshToken(t *testing.T) {
 	os.Setenv("JWT_REFRESH_TOKEN_SECRET", "qwertyuio")
 	os.Setenv("JWT_REFRESH_TOKEN_LIFESPAN_HOURS", "15")
 
-	payload := map[string]interface{}{
-		"dummykey": "dummybar",
-	}
+	var userID uint = 333
 	j := New()
 
-	token, err := j.CreateRefreshToken(payload)
+	token, err := j.CreateRefreshToken(userID)
 	if err != nil {
 		t.Error("failed create new jwt refresh token.", err)
 	}
@@ -65,7 +61,8 @@ func TestExtractToken(t *testing.T) {
 		}
 	})
 	s := httptest.NewServer(g)
-	token, _ := j.CreateToken(map[string]interface{}{"dummykey": "dummyval"})
+	var userID uint = 333
+	token, _ := j.CreateToken(userID)
 	rq, _ := http.NewRequest("GET", s.URL, nil)
 	rq.Header.Set("Authorization", "bear: "+token)
 	_, err := s.Client().Do(rq)
@@ -76,9 +73,8 @@ func TestExtractToken(t *testing.T) {
 
 func TestValidateToken(t *testing.T) {
 	j := New()
-
-	token, _ := j.CreateToken(nil)
-
+	var userID uint = 333
+	token, _ := j.CreateToken(userID)
 	_, err := j.ValidateToken(token)
 	if err != nil {
 		t.Error("failed assert validate jwt token")
@@ -88,14 +84,15 @@ func TestValidateToken(t *testing.T) {
 
 func TestDecodeToken(t *testing.T) {
 	j := New()
-	token, _ := j.CreateToken(map[string]interface{}{"dummykey": "dummyval"})
+	var userID uint = 333
+	token, _ := j.CreateToken(userID)
 
-	payload, err := j.DecodeToken(token)
+	id, err := j.DecodeToken(token)
 	if err != nil {
 		t.Error("failed decoding the token.", err)
 	}
 
-	if payload["dummykey"] != "dummyval" {
+	if id != userID {
 		t.Error("failed decoding the token")
 	}
 }

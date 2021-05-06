@@ -42,6 +42,13 @@ func New() *CacheEngine {
 			DB:       int(dbName),
 		}),
 	}
+
+	_, err := cEngine.redisDB.Ping(redisCTX).Result()
+	if err != nil {
+		fmt.Println("Redis error: ", err)
+		os.Exit(1)
+	}
+
 	return cEngine
 }
 
@@ -53,6 +60,7 @@ func Resolve() *CacheEngine {
 // Set set a key, val pair in the cache
 func (c *CacheEngine) Set(key string, val string) (bool, error) {
 	status := c.redisDB.Set(redisCTX, key, val, 0)
+
 	if status.Err() != nil {
 		return false, status.Err()
 	}

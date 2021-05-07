@@ -74,7 +74,7 @@ func (app *App) Bootstrap() {
 
 	// initiate the cache varialbe
 	if app.Features.Cache == true {
-		cache.New()
+		cache.New(app.Features.Cache)
 	}
 
 	// initiate sessions

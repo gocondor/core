@@ -2,6 +2,7 @@ package sessions
 
 import (
 	"fmt"
+	"log"
 	"os"
 
 	"github.com/gin-contrib/sessions"
@@ -14,9 +15,12 @@ import (
 type Sessions struct{}
 
 var ses *Sessions
+var sessionsOn bool
 
 // New initiate sessions var
-func New() *Sessions {
+func New(sessionsFeatureOn bool) *Sessions {
+	sessionsOn = sessionsFeatureOn
+
 	ses = &Sessions{}
 	return ses
 }
@@ -49,6 +53,9 @@ func Resolve() *Sessions {
 
 // Set sets key, val in session
 func (s *Sessions) Set(key interface{}, val interface{}, c *gin.Context) {
+	if !sessionsOn {
+		exitWithlog()
+	}
 	session := sessions.Default(c)
 	session.Set(key, val)
 	session.Save()
@@ -56,12 +63,18 @@ func (s *Sessions) Set(key interface{}, val interface{}, c *gin.Context) {
 
 // Get retrieves the key's value
 func (s *Sessions) Get(key interface{}, c *gin.Context) interface{} {
+	if !sessionsOn {
+		exitWithlog()
+	}
 	session := sessions.Default(c)
 	return session.Get(key)
 }
 
 // Get retrieves the key's value
 func (s *Sessions) Has(key interface{}, c *gin.Context) bool {
+	if !sessionsOn {
+		exitWithlog()
+	}
 	session := sessions.Default(c)
 	res := session.Get(key)
 	if res == nil {
@@ -73,6 +86,9 @@ func (s *Sessions) Has(key interface{}, c *gin.Context) bool {
 
 // Get retrieves the key's value and delete it
 func (s *Sessions) Pull(key interface{}, c *gin.Context) interface{} {
+	if !sessionsOn {
+		exitWithlog()
+	}
 	session := sessions.Default(c)
 	val := session.Get(key)
 	session.Delete(key)
@@ -82,6 +98,9 @@ func (s *Sessions) Pull(key interface{}, c *gin.Context) interface{} {
 
 // Delete deletes session entry matching the given key
 func (s *Sessions) Delete(key interface{}, c *gin.Context) {
+	if !sessionsOn {
+		exitWithlog()
+	}
 	session := sessions.Default(c)
 	session.Delete(key)
 	session.Save()
@@ -89,7 +108,14 @@ func (s *Sessions) Delete(key interface{}, c *gin.Context) {
 
 // Clear deletes all values in the session.
 func (s *Sessions) Clear(c *gin.Context) {
+	if !sessionsOn {
+		exitWithlog()
+	}
 	session := sessions.Default(c)
 	session.Clear()
 	session.Save()
+}
+
+func exitWithlog() {
+	log.Fatal("please turn on the sessions feature before using it.")
 }

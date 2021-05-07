@@ -78,7 +78,7 @@ func (app *App) Bootstrap() {
 	}
 
 	// initiate sessions
-	sesMiddleware = initSessions()
+	sesMiddleware = initSessions(app.Features.Sessions)
 
 }
 
@@ -245,8 +245,8 @@ func (app *App) GetHTTPHost() string {
 }
 
 // initiate sessions
-func initSessions() gin.HandlerFunc {
-	ses := sessions.New()
+func initSessions(sessionsFeatureFlag bool) gin.HandlerFunc {
+	ses := sessions.New(sessionsFeatureFlag)
 	d := os.Getenv("SESSION_DRIVER")
 	switch d {
 	case "redis":

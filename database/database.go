@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path"
 
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/sqlite"
@@ -28,15 +29,19 @@ func New() *gorm.DB {
 		}
 		return db
 	case "sqlite":
-		dbName := os.Getenv("SQLITE_FILE")
-		_, err := os.Stat("../../" + dbName)
+		dbName := os.Getenv("SQLITE_DB")
+		if dbName == "" {
+			panic("please specify the sqilte database file name")
+		}
+		wd, _ := os.Getwd()
+		dbPath := path.Join(wd, dbName)
+		_, err := os.Stat(dbPath)
 		if err != nil {
 			panic(err)
 		}
 		db, err = gorm.Open(sqlite.Open(dbName), &gorm.Config{})
 		if err != nil {
-			fmt.Println(err)
-			os.Exit(1)
+			log.Fatal(err)
 		}
 		return db
 	default:
@@ -60,8 +65,7 @@ func prepareMysql() (*gorm.DB, error) {
 	)
 	db, err = gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+		log.Fatal(err)
 	}
 
 	return db, nil

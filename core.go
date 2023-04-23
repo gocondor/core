@@ -6,22 +6,15 @@ package core
 
 import (
 	"fmt"
-	"io"
 	"log"
+	"net/http"
 	"os"
-	"strconv"
 	"strings"
 
-	"github.com/gin-gonic/autotls"
-	"github.com/gin-gonic/gin"
-	"github.com/gocondor/core/auth"
 	"github.com/gocondor/core/cache"
 	"github.com/gocondor/core/database"
-	"github.com/gocondor/core/jwt"
 	"github.com/gocondor/core/middlewares"
-	"github.com/gocondor/core/routing"
-	"github.com/gocondor/core/sessions"
-	"github.com/unrolled/secure"
+	"github.com/julienschmidt/httprouter"
 )
 
 // App struct
@@ -41,9 +34,6 @@ const logsFilePath = "logs/app.log"
 // logs file
 var logsFile *os.File
 
-// sessions middleware
-var sesMiddleware gin.HandlerFunc
-
 // New initiates the app struct
 func New() *App {
 	return &App{
@@ -58,204 +48,81 @@ func (app *App) SetEnv(env map[string]string) {
 	}
 }
 
-//Bootstrap initiate app
+// Bootstrap initiate app
 func (app *App) Bootstrap() {
 	//initiate middlewares engine varialbe
-	middlewares.New()
+	middlewares.New() // TODO rename to initialize
 
 	//initiate routing engine varialbe
-	routing.New()
-	routing.NewGroupsHolder()
+	NewRouter()
 
-	//initiate data base varialb
+	//initiate data base variable
 	if app.Features.Database == true {
-		database.New()
+		database.New() // TODO rename to initialize
 	}
 
 	// initiate the cache varialbe
 	if app.Features.Cache == true {
-		cache.New(app.Features.Cache)
+		cache.New(app.Features.Cache) // TODO rename to initialize
 	}
-
-	// initiate sessions
-	sesMiddleware = initSessions(app.Features.Sessions)
-
 }
 
-// Run execute the app
+// Start GoCondor
 func (app *App) Run(portNumber string) {
+	router := httprouter.New()
+
 	// fallback to port number to 80 if not set
 	if portNumber == "" {
 		portNumber = "80"
 	}
 
-	// Log to file
-	logsFile, err := os.OpenFile(logsFilePath, os.O_CREATE|os.O_APPEND|os.O_RDWR, 0644)
-	if err != nil {
-		panic(err)
-	}
-	defer logsFile.Close()
-	gin.DefaultWriter = io.MultiWriter(logsFile, os.Stdout)
-
-	//initiate gin engines
-	httpGinEngine := gin.Default()
-	httpsGinEngine := gin.Default()
-
-	// use sessions
-	if app.Features.Sessions == true {
-		httpGinEngine.Use(sesMiddleware)
-		httpsGinEngine.Use(sesMiddleware)
-	}
-
-	// init auth
-	auth.New(sessions.Resolve(), jwt.Resolve())
-
-	httpsOn, _ := strconv.ParseBool(os.Getenv("APP_HTTPS_ON"))
-	redirectToHTTPS, _ := strconv.ParseBool(os.Getenv("APP_REDIRECT_HTTP_TO_HTTPS"))
-	letsencryptOn, _ := strconv.ParseBool(os.Getenv("APP_HTTPS_USE_LETSENCRYPT"))
-
-	if httpsOn {
-		//serve the https
-		certFile := os.Getenv("APP_HTTPS_CERT_FILE_PATH")
-		keyFile := os.Getenv("APP_HTTPS_KEY_FILE_PATH")
-		host := app.GetHTTPSHost() + ":443"
-		httpsGinEngine = app.UseMiddlewares(middlewares.Resolve().GetMiddlewares(), httpsGinEngine)
-		httpsGinEngine = app.RegisterRoutes(routing.Resolve().GetRoutes(), httpsGinEngine)
-		// register the groups routes
-		httpsGinEngine = app.RegisterRoutes(routing.ResolveGroupsHolder().GetGroupsRoutes(), httpsGinEngine)
-
-		// use let's encrypt
-		if letsencryptOn {
-			go log.Fatal(autotls.Run(httpsGinEngine, app.GetHTTPSHost()))
-			return
-		}
-
-		go httpsGinEngine.RunTLS(host, certFile, keyFile)
-	}
-
-	//redirect http to https
-	if httpsOn && redirectToHTTPS {
-		secureFunc := func() gin.HandlerFunc {
-			return func(c *gin.Context) {
-				secureMiddleware := secure.New(secure.Options{
-					SSLRedirect: true,
-					SSLHost:     app.GetHTTPSHost() + ":443",
-				})
-				err := secureMiddleware.Process(c.Writer, c.Request)
-				if err != nil {
-					return
-				}
-				c.Next()
-			}
-		}()
-		redirectEngine := gin.New()
-		redirectEngine.Use(secureFunc)
-		host := fmt.Sprintf("%s:%s", app.GetHTTPHost(), portNumber)
-		redirectEngine.Run(host)
-	}
-
-	//serve the http version
-	httpGinEngine = app.UseMiddlewares(middlewares.Resolve().GetMiddlewares(), httpGinEngine)
-	httpGinEngine = app.RegisterRoutes(routing.Resolve().GetRoutes(), httpGinEngine)
-	// register the groups routes
-	httpGinEngine = app.RegisterRoutes(routing.ResolveGroupsHolder().GetGroupsRoutes(), httpGinEngine)
-
-	host := fmt.Sprintf("%s:%s", app.GetHTTPHost(), portNumber)
-	httpGinEngine.Run(host)
+	router = app.RegisterRoutes(ResolveRouter().GetRoutes(), router)
+	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", portNumber), router))
 }
 
-// SetAppMode set the mode if the app (debug|test|release)
-func (app *App) SetAppMode(mode string) {
-	if mode == gin.ReleaseMode || mode == gin.TestMode || mode == gin.DebugMode {
-		gin.SetMode(mode)
-	} else {
-		gin.SetMode(gin.TestMode)
-	}
-}
-
-// IntegratePackages helps with attaching packages to gin context
-func (app *App) IntegratePackages(handlerFuncs []gin.HandlerFunc, engine *gin.Engine) *gin.Engine {
-	for _, pkgIntegration := range handlerFuncs {
-		engine.Use(pkgIntegration)
-	}
-
-	return engine
-}
-
-//SetEnabledFeatures to control what features to turn on or off
+// SetEnabledFeatures to control what features to turn on or off
 func (app *App) SetEnabledFeatures(features *Features) {
 	app.Features = features
 }
 
-// UseMiddlewares use middlewares by gin engine
-func (app *App) UseMiddlewares(middlewares []gin.HandlerFunc, engine *gin.Engine) *gin.Engine {
-	for _, middleware := range middlewares {
-		engine.Use(middleware)
-	}
-
-	return engine
-}
-
 // RegisterRoutes register routes on gin engine
-func (app *App) RegisterRoutes(routers []routing.Route, engine *gin.Engine) *gin.Engine {
-	for _, route := range routers {
+// TODO enhance
+func (app *App) RegisterRoutes(routes []Route, router *httprouter.Router) *httprouter.Router {
+	for _, route := range routes {
 		switch route.Method {
 		case "get":
-			engine.GET(route.Path, route.Handlers...)
+			router.GET(route.Path, makeHTTPRouterHandlerFunc(route.Handler))
 		case "post":
-			engine.POST(route.Path, route.Handlers...)
+			router.POST(route.Path, makeHTTPRouterHandlerFunc(route.Handler))
 		case "delete":
-			engine.DELETE(route.Path, route.Handlers...)
+			router.DELETE(route.Path, makeHTTPRouterHandlerFunc(route.Handler))
 		case "patch":
-			engine.PATCH(route.Path, route.Handlers...)
+			router.PATCH(route.Path, makeHTTPRouterHandlerFunc(route.Handler))
 		case "put":
-			engine.PUT(route.Path, route.Handlers...)
+			router.PUT(route.Path, makeHTTPRouterHandlerFunc(route.Handler))
 		case "options":
-			engine.OPTIONS(route.Path, route.Handlers...)
+			router.OPTIONS(route.Path, makeHTTPRouterHandlerFunc(route.Handler))
 		case "head":
-			engine.HEAD(route.Path, route.Handlers...)
+			router.HEAD(route.Path, makeHTTPRouterHandlerFunc(route.Handler))
 		}
 	}
 
-	return engine
+	return router
 }
 
-// GetHTTPSHost returns https host name
-func (app *App) GetHTTPSHost() string {
-	host := os.Getenv("APP_HTTPS_HOST")
-	//if not set get http instead
-	if host == "" {
-		host = os.Getenv("APP_HTTP_HOST")
-	}
-	//if both not set use local host
-	if host == "" {
-		host = "localhost"
-	}
-	return host
-}
+// makeHTTPRouterHandlerFunc creates the httproute handler
+func makeHTTPRouterHandlerFunc(h Handler) httprouter.Handle {
+	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+		ctx := &Context{
+			request: &Request{
+				httpRequest:    r,
+				httpPathParams: ps,
+			},
+			response: &Response{
+				httpResponseWriter: w,
+			},
+		}
 
-// GetHTTPHost returns http host name
-func (app *App) GetHTTPHost() string {
-	host := os.Getenv("APP_HTTP_HOST")
-	//if both not set use local host
-	if host == "" {
-		host = "localhost"
-	}
-	return host
-}
-
-// initiate sessions
-func initSessions(sessionsFeatureFlag bool) gin.HandlerFunc {
-	ses := sessions.New(sessionsFeatureFlag)
-	d := os.Getenv("SESSION_DRIVER")
-	switch d {
-	case "redis":
-		return ses.InitiateRedistore("mysecret", "mysession")
-	case "cookie":
-		return ses.InitiateCookieStore("mysecret", "mysession")
-	case "memstore":
-		return ses.InitiateMemstoreStore("mysecret", "mysession")
-	default:
-		return ses.InitiateMemstoreStore("mysecret", "mysession")
+		h(ctx)
 	}
 }

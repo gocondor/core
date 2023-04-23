@@ -17,6 +17,8 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
+var filePath string
+
 // App struct
 type App struct {
 	Features *Features
@@ -27,12 +29,6 @@ const GORM = "gorm"
 
 // CACHE a cache engine variable
 const CACHE = "cache"
-
-// logs file path
-const logsFilePath = "logs/app.log"
-
-// logs file
-var logsFile *os.File
 
 // New initiates the app struct
 func New() *App {
@@ -46,6 +42,16 @@ func (app *App) SetEnv(env map[string]string) {
 	for key, val := range env {
 		os.Setenv(strings.TrimSpace(key), strings.TrimSpace(val))
 	}
+}
+
+// set the logs file path
+func (app *App) SetLogsFilePath(f string) {
+	filePath = f
+}
+
+// get the logs file
+func (app *App) GetLogsFile() *os.File {
+	return logsFile
 }
 
 // Bootstrap initiate app
@@ -68,14 +74,7 @@ func (app *App) Bootstrap() {
 }
 
 // Start GoCondor
-func (app *App) Run(portNumber string) {
-	router := httprouter.New()
-
-	// fallback to port number to 80 if not set
-	if portNumber == "" {
-		portNumber = "80"
-	}
-
+func (app *App) Run(portNumber string, router *httprouter.Router) {
 	router = app.RegisterRoutes(ResolveRouter().GetRoutes(), router)
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", portNumber), router))
 }
@@ -121,8 +120,13 @@ func makeHTTPRouterHandlerFunc(h Handler) httprouter.Handle {
 			response: &Response{
 				httpResponseWriter: w,
 			},
+			Logger: NewLogger(filePath),
 		}
 
 		h(ctx)
+
+		// close the logs file after finish executing the handler
+		// TODO refactor
+		defer logsFile.Close()
 	}
 }

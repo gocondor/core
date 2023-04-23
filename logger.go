@@ -5,6 +5,9 @@ import (
 	"os"
 )
 
+// logs file
+var logsFile *os.File
+
 type Logger struct {
 	infoLogger    *log.Logger
 	warningLogger *log.Logger
@@ -14,12 +17,16 @@ type Logger struct {
 
 var l *Logger
 
-func NewLogger() *Logger {
-	opts := log.Lshortfile
-	infoLogger := log.New(os.Stdout, "info: ", opts)
-	warningLogger := log.New(os.Stdout, "warning: ", opts)
-	errorLogger := log.New(os.Stdout, "error: ", opts)
-	debugLogger := log.New(os.Stdout, "debug: ", opts)
+func NewLogger(logsFilePath string) *Logger {
+	logsFile, err := os.OpenFile(logsFilePath, os.O_CREATE|os.O_APPEND|os.O_RDWR, 0644)
+	if err != nil {
+		panic(err)
+	}
+
+	infoLogger := log.New(logsFile, "info: ", log.LstdFlags)
+	warningLogger := log.New(logsFile, "warning: ", log.LstdFlags)
+	errorLogger := log.New(logsFile, "error: ", log.LstdFlags)
+	debugLogger := log.New(logsFile, "debug: ", log.LstdFlags)
 	l = &Logger{
 		infoLogger,
 		warningLogger,

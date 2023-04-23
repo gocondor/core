@@ -13,6 +13,7 @@ require (
 	github.com/gorilla/sessions v1.2.1 // indirect
 	github.com/joho/godotenv v1.3.0
 	github.com/json-iterator/go v1.1.10 // indirect
+	github.com/julienschmidt/httprouter v1.3.0 // indirect
 	github.com/leodido/go-urn v1.2.1 // indirect
 	github.com/ugorji/go v1.2.5 // indirect
 	github.com/unrolled/secure v1.0.8

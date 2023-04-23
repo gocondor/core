@@ -1,4 +1,4 @@
-package routing_test
+package core_test
 
 import (
 	"fmt"
@@ -8,7 +8,7 @@ import (
 	. "github.com/gocondor/core/routing"
 )
 
-func TestNew(t *testing.T) {
+func TestNewRouter(t *testing.T) {
 	r := New()
 
 	if fmt.Sprintf("%T", r) != "*routing.Router" {
@@ -16,14 +16,14 @@ func TestNew(t *testing.T) {
 	}
 }
 
-func TestResolve(t *testing.T) {
+func TestResolveRouter(t *testing.T) {
 	r := Resolve()
 	if fmt.Sprintf("%T", r) != "*routing.Router" {
 		t.Error("failed resolve router variable")
 	}
 }
 
-func TestGet(t *testing.T) {
+func TestGetRequest(t *testing.T) {
 	r := New()
 	handler := func(c *gin.Context) {}
 	r.Get("/", handler)
@@ -34,7 +34,7 @@ func TestGet(t *testing.T) {
 	}
 }
 
-func TestPost(t *testing.T) {
+func TestPostRequest(t *testing.T) {
 	r := New()
 	handler := func(c *gin.Context) {}
 	r.Post("/", handler)
@@ -45,7 +45,7 @@ func TestPost(t *testing.T) {
 	}
 }
 
-func TestDelete(t *testing.T) {
+func TestDeleteRequest(t *testing.T) {
 	r := New()
 	handler := func(c *gin.Context) {}
 	r.Delete("/", handler)
@@ -56,7 +56,7 @@ func TestDelete(t *testing.T) {
 	}
 }
 
-func TestPut(t *testing.T) {
+func TestPutRequest(t *testing.T) {
 	r := New()
 	handler := func(c *gin.Context) {}
 	r.Put("/", handler)
@@ -67,7 +67,7 @@ func TestPut(t *testing.T) {
 	}
 }
 
-func TestOptions(t *testing.T) {
+func TestOptionsRequest(t *testing.T) {
 	r := New()
 	handler := func(c *gin.Context) {}
 	r.Options("/", handler)
@@ -78,7 +78,7 @@ func TestOptions(t *testing.T) {
 	}
 }
 
-func TestHead(t *testing.T) {
+func TestHeadRequest(t *testing.T) {
 	r := New()
 	handler := func(c *gin.Context) {}
 	r.Head("/", handler)
@@ -89,7 +89,7 @@ func TestHead(t *testing.T) {
 	}
 }
 
-func TestGetRoutes(t *testing.T) {
+func TestGetRoutesRequest(t *testing.T) {
 	r := New()
 	r.Get("/", func(c *gin.Context) {})
 	r.Post("/", func(c *gin.Context) {})

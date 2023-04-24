@@ -116,7 +116,7 @@ func makeHTTPRouterHandlerFunc(h Handler) httprouter.Handle {
 				httpRequest:    r,
 				httpPathParams: ps,
 			},
-			Response: &Response{
+			ResponseBag: &Response{
 				header:         map[string]string{},
 				body:           "",
 				responseWriter: w,

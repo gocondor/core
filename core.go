@@ -85,7 +85,6 @@ func (app *App) SetEnabledFeatures(features *Features) {
 }
 
 // RegisterRoutes register routes on gin engine
-// TODO enhance
 func (app *App) RegisterRoutes(routes []Route, router *httprouter.Router) *httprouter.Router {
 	for _, route := range routes {
 		switch route.Method {
@@ -109,7 +108,7 @@ func (app *App) RegisterRoutes(routes []Route, router *httprouter.Router) *httpr
 	return router
 }
 
-// makeHTTPRouterHandlerFunc creates the httproute handler
+// make handler func
 func makeHTTPRouterHandlerFunc(h Handler) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 		ctx := &Context{

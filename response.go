@@ -15,3 +15,8 @@ func (rs *Response) setResponseBody(body string) {
 func (rs *Response) GetResponseBody() string {
 	return rs.body
 }
+
+// TODO implement
+func (rs *Response) SetHeader(key string, val string) {
+
+}

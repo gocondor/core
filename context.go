@@ -9,25 +9,27 @@ import (
 )
 
 type Context struct {
-	Request         *Request
-	responseStorage *responseStorage
-	Logger          *Logger
+	Request  *Request
+	Response *Response
+	Logger   *Logger
 }
 
-func (c *Context) Response(data interface{}) {
+func (c *Context) ResponseBody(data interface{}) *Response {
 	dataMeta := reflect.ValueOf(data)
 	if dataMeta.Kind() == reflect.Pointer {
 		dataMeta = dataMeta.Elem()
 	}
 
-	str := c.CastBasicVarsToString(data)
-	c.responseStorage.setResponseBody(str)
-	fmt.Println(str)
-
 	if dataMeta.Kind() == reflect.Struct {
 		str, _ := json.Marshal(structs.Map(data))
-		c.responseStorage.setResponseBody(string(str))
+		c.Response.setResponseBody(string(str))
+
+		return c.Response
 	}
+
+	str := c.CastBasicVarsToString(data)
+	c.Response.setResponseBody(str)
+	return c.Response
 }
 
 func (c *Context) CastBasicVarsToString(data interface{}) string {

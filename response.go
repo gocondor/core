@@ -3,5 +3,15 @@ package core
 import "net/http"
 
 type Response struct {
-	httpResponseWriter http.ResponseWriter
+	header         map[string]string
+	body           string
+	responseWriter http.ResponseWriter
+}
+
+func (rs *Response) setResponseBody(body string) {
+	rs.body = body
+}
+
+func (rs *Response) GetResponseBody() string {
+	return rs.body
 }

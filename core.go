@@ -117,16 +117,17 @@ func makeHTTPRouterHandlerFunc(h Handler) httprouter.Handle {
 				httpRequest:    r,
 				httpPathParams: ps,
 			},
-			responseStorage: &responseStorage{
-				text: "",
+			Response: &Response{
+				header:         map[string]string{},
+				body:           "",
+				responseWriter: w,
 			},
 			Logger: NewLogger(filePath),
 		}
 
-		h(ctx)
+		response := h(ctx)
+		response.responseWriter.Write([]byte(response.GetResponseBody()))
 
-		// close the logs file after finish executing the handler
-		// TODO refactor
-		defer logsFile.Close()
+		defer logsFile.Close() // close file after handle
 	}
 }

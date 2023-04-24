@@ -22,13 +22,13 @@ func (c *Context) Response(data interface{}) *Response {
 
 	if dataMeta.Kind() == reflect.Struct {
 		str, _ := json.Marshal(structs.Map(data))
-		c.ResponseBag.setResponseBody(string(str))
+		c.ResponseBag.setJsonBody(string(str))
 
 		return c.ResponseBag
 	}
 
 	str := c.CastBasicVarsToString(data)
-	c.ResponseBag.setResponseBody(str)
+	c.ResponseBag.setTextBody(str)
 	return c.ResponseBag
 }
 
@@ -87,4 +87,8 @@ func (c *Context) CastBasicVarsToString(data interface{}) string {
 	default:
 		panic(fmt.Sprintf("unsupported data type %v!", dataType))
 	}
+}
+
+func (c *Context) SetHeader(key string, val string) {
+	c.ResponseBag.setHeader(key, val)
 }

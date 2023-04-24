@@ -117,16 +117,25 @@ func makeHTTPRouterHandlerFunc(h Handler) httprouter.Handle {
 				httpPathParams: ps,
 			},
 			ResponseBag: &Response{
-				header:         map[string]string{},
-				body:           "",
+				headers:        []header{},
+				textBody:       "",
+				jsonBody:       "",
 				responseWriter: w,
 			},
 			Logger: NewLogger(filePath),
 		}
-
 		response := h(ctx)
-		response.responseWriter.Write([]byte(response.GetResponseBody()))
-
+		for _, header := range response.headers {
+			w.Header().Add(header.key, header.val)
+		}
 		defer logsFile.Close() // close file after handle
+		if response.getTextBody() != "" {
+			w.Header().Add("Content-Type", "text/html; charset=utf-8")
+			response.responseWriter.Write([]byte(response.getTextBody()))
+		}
+		if response.getJsonBody() != "" {
+			w.Header().Add("Content-Type", "application/json")
+			response.responseWriter.Write([]byte(response.getJsonBody()))
+		}
 	}
 }

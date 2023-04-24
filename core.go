@@ -113,12 +113,12 @@ func (app *App) RegisterRoutes(routes []Route, router *httprouter.Router) *httpr
 func makeHTTPRouterHandlerFunc(h Handler) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 		ctx := &Context{
-			request: &Request{
+			Request: &Request{
 				httpRequest:    r,
 				httpPathParams: ps,
 			},
-			response: &Response{
-				httpResponseWriter: w,
+			responseStorage: &responseStorage{
+				text: "",
 			},
 			Logger: NewLogger(filePath),
 		}

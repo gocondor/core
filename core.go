@@ -68,6 +68,7 @@ func (app *App) SetEnabledFeatures(features *Features) {
 }
 
 func (app *App) RegisterRoutes(routes []Route, router *httprouter.Router) *httprouter.Router {
+	router.NotFound = notFoundHandler{}
 	for _, route := range routes {
 		switch route.Method {
 		case "get":
@@ -117,4 +118,11 @@ func makeHTTPRouterHandlerFunc(h Handler) httprouter.Handle {
 			w.Write([]byte(ctx.Response.getJsonBody()))
 		}
 	}
+}
+
+type notFoundHandler struct{}
+
+func (n notFoundHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(404)
+	w.Write([]byte("Not Found"))
 }

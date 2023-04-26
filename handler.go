@@ -1,3 +1,3 @@
 package core
 
-type Handler func(C *Context) *Response
+type Handler func(C *Context)

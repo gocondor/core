@@ -69,6 +69,7 @@ func (app *App) SetEnabledFeatures(features *Features) {
 
 func (app *App) RegisterRoutes(routes []Route, router *httprouter.Router) *httprouter.Router {
 	router.NotFound = notFoundHandler{}
+	router.MethodNotAllowed = methodNotAllowed{}
 	for _, route := range routes {
 		switch route.Method {
 		case "get":
@@ -121,8 +122,14 @@ func makeHTTPRouterHandlerFunc(h Handler) httprouter.Handle {
 }
 
 type notFoundHandler struct{}
+type methodNotAllowed struct{}
 
 func (n notFoundHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(404)
 	w.Write([]byte("Not Found"))
+}
+
+func (n methodNotAllowed) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(405)
+	w.Write([]byte("Method not allowed"))
 }

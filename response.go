@@ -18,11 +18,15 @@ type header struct {
 }
 
 func (rs *Response) WriteText(body interface{}) {
-	rs.textBody = rs.castBasicVarsToString(body)
+	if rs.textBody == "" {
+		rs.textBody = rs.castBasicVarsToString(body)
+	}
 }
 
 func (rs *Response) WriteJson(body string) {
-	rs.jsonBody = body
+	if rs.textBody == "" {
+		rs.jsonBody = body
+	}
 }
 
 func (rs *Response) getTextBody() string {
@@ -100,4 +104,9 @@ func (rs *Response) castBasicVarsToString(data interface{}) string {
 	default:
 		panic(fmt.Sprintf("unsupported data type %v!", dataType))
 	}
+}
+
+func (rs *Response) reset() {
+	rs.textBody = ""
+	rs.jsonBody = ""
 }

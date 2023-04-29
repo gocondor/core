@@ -20,3 +20,7 @@ func (c *Context) Debug(d interface{}) {
 	fmt.Println(formatted)
 	c.Response.responseWriter.Write([]byte(formatted))
 }
+
+func (c *Context) Next() {
+	ResolveApp().Next(c)
+}

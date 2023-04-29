@@ -23,12 +23,23 @@ var filePath string
 // App struct
 type App struct {
 	Features *Features
+	t        int // for trancking middlewares
+	chain    *chain
 }
 
+var app *App
+
 func New() *App {
-	return &App{
+	app = &App{
 		Features: &Features{},
+		chain:    &chain{},
 	}
+
+	return app
+}
+
+func ResolveApp() *App {
+	return app
 }
 
 func (app *App) SetEnv(env map[string]string) {
@@ -47,6 +58,7 @@ func (app *App) GetLogsFile() *os.File {
 
 func (app *App) Bootstrap() {
 	NewRouter()
+	NewMiddlewares()
 	if app.Features.Database == true {
 		database.New()
 	}
@@ -59,7 +71,7 @@ func (app *App) Run(portNumber string, router *httprouter.Router) {
 	router = app.RegisterRoutes(ResolveRouter().GetRoutes(), router)
 	ee, _ := strconv.ParseInt("0x1F985", 0, 64)
 	fmt.Printf("Welcome to GoCondor %v \n", html.UnescapeString(string(ee)))
-	fmt.Printf("Listening on port %s\nWaiting for requests...", portNumber)
+	fmt.Printf("Listening on port %s\nWaiting for requests...\n", portNumber)
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", portNumber), router))
 }
 
@@ -73,26 +85,26 @@ func (app *App) RegisterRoutes(routes []Route, router *httprouter.Router) *httpr
 	for _, route := range routes {
 		switch route.Method {
 		case "get":
-			router.GET(route.Path, makeHTTPRouterHandlerFunc(route.Handler))
+			router.GET(route.Path, app.makeHTTPRouterHandlerFunc(route.Handler))
 		case "post":
-			router.POST(route.Path, makeHTTPRouterHandlerFunc(route.Handler))
+			router.POST(route.Path, app.makeHTTPRouterHandlerFunc(route.Handler))
 		case "delete":
-			router.DELETE(route.Path, makeHTTPRouterHandlerFunc(route.Handler))
+			router.DELETE(route.Path, app.makeHTTPRouterHandlerFunc(route.Handler))
 		case "patch":
-			router.PATCH(route.Path, makeHTTPRouterHandlerFunc(route.Handler))
+			router.PATCH(route.Path, app.makeHTTPRouterHandlerFunc(route.Handler))
 		case "put":
-			router.PUT(route.Path, makeHTTPRouterHandlerFunc(route.Handler))
+			router.PUT(route.Path, app.makeHTTPRouterHandlerFunc(route.Handler))
 		case "options":
-			router.OPTIONS(route.Path, makeHTTPRouterHandlerFunc(route.Handler))
+			router.OPTIONS(route.Path, app.makeHTTPRouterHandlerFunc(route.Handler))
 		case "head":
-			router.HEAD(route.Path, makeHTTPRouterHandlerFunc(route.Handler))
+			router.HEAD(route.Path, app.makeHTTPRouterHandlerFunc(route.Handler))
 		}
 	}
 
 	return router
 }
 
-func makeHTTPRouterHandlerFunc(h Handler) httprouter.Handle {
+func (app *App) makeHTTPRouterHandlerFunc(h Handler) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 		ctx := &Context{
 			Request: &Request{
@@ -101,11 +113,16 @@ func makeHTTPRouterHandlerFunc(h Handler) httprouter.Handle {
 			},
 			Response: &Response{
 				headers:        []header{},
+				textBody:       "",
+				jsonBody:       "",
 				responseWriter: w,
 			},
 			Logger: NewLogger(filePath),
 		}
-		h(ctx)
+
+		app.prepareChain(h)
+		app.chain.execute(ctx)
+
 		for _, header := range ctx.Response.getHeaders() {
 			w.Header().Add(header.key, header.val)
 		}
@@ -118,6 +135,7 @@ func makeHTTPRouterHandlerFunc(h Handler) httprouter.Handle {
 			w.Header().Add("Content-Type", "application/json")
 			w.Write([]byte(ctx.Response.getJsonBody()))
 		}
+		ctx.Response.reset()
 	}
 }
 
@@ -132,4 +150,50 @@ func (n notFoundHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func (n methodNotAllowed) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(405)
 	w.Write([]byte("Method not allowed"))
+}
+
+func UseMiddleware(mw func(C *Context)) {
+	ResolveMiddlewares().Attach(mw)
+}
+
+func (app *App) handleMiddlewares(ctx *Context) {
+	// check the index first
+	app.t = 0
+	if ResolveMiddlewares().getByIndex(0) != nil {
+		ResolveMiddlewares().GetMiddlewares()[0](ctx)
+	}
+}
+
+func (app *App) Next(c *Context) {
+	n := app.chain.getByIndex(app.t + 1)
+	if n != nil {
+		n(c)
+	}
+}
+
+type chain struct {
+	nodes []Handler
+}
+
+func (c *chain) getByIndex(i int) Handler {
+	for key, _ := range c.nodes {
+		if key == i {
+			return c.nodes[i]
+		}
+	}
+
+	return nil
+}
+
+func (app *App) prepareChain(h Handler) {
+	mw := ResolveMiddlewares().GetMiddlewares()
+	mw = append(mw, h)
+	app.chain.nodes = append(app.chain.nodes, mw...)
+}
+
+func (c *chain) execute(ctx *Context) {
+	app.t = 0
+	if c.getByIndex(0) != nil {
+		c.getByIndex(0)(ctx)
+	}
 }

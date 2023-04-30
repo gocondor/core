@@ -8,28 +8,27 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/gin-gonic/gin"
-	. "github.com/gocondor/core/routing"
+	"github.com/gocondor/core"
 )
 
 func TestNewRouter(t *testing.T) {
-	r := New()
+	r := core.NewRouter()
 
-	if fmt.Sprintf("%T", r) != "*routing.Router" {
+	if fmt.Sprintf("%T", r) != "*core.Router" {
 		t.Error("failed asserting initiation of new router")
 	}
 }
 
 func TestResolveRouter(t *testing.T) {
-	r := Resolve()
-	if fmt.Sprintf("%T", r) != "*routing.Router" {
+	r := core.ResolveRouter()
+	if fmt.Sprintf("%T", r) != "*core.Router" {
 		t.Error("failed resolve router variable")
 	}
 }
 
 func TestGetRequest(t *testing.T) {
-	r := New()
-	handler := func(c *gin.Context) {}
+	r := core.NewRouter()
+	handler := func(c *core.Context) {}
 	r.Get("/", handler)
 
 	route := r.GetRoutes()[0]
@@ -39,8 +38,8 @@ func TestGetRequest(t *testing.T) {
 }
 
 func TestPostRequest(t *testing.T) {
-	r := New()
-	handler := func(c *gin.Context) {}
+	r := core.NewRouter()
+	handler := func(c *core.Context) {}
 	r.Post("/", handler)
 
 	route := r.GetRoutes()[0]
@@ -50,8 +49,8 @@ func TestPostRequest(t *testing.T) {
 }
 
 func TestDeleteRequest(t *testing.T) {
-	r := New()
-	handler := func(c *gin.Context) {}
+	r := core.NewRouter()
+	handler := func(c *core.Context) {}
 	r.Delete("/", handler)
 
 	route := r.GetRoutes()[0]
@@ -61,8 +60,8 @@ func TestDeleteRequest(t *testing.T) {
 }
 
 func TestPutRequest(t *testing.T) {
-	r := New()
-	handler := func(c *gin.Context) {}
+	r := core.NewRouter()
+	handler := func(c *core.Context) {}
 	r.Put("/", handler)
 
 	route := r.GetRoutes()[0]
@@ -72,8 +71,8 @@ func TestPutRequest(t *testing.T) {
 }
 
 func TestOptionsRequest(t *testing.T) {
-	r := New()
-	handler := func(c *gin.Context) {}
+	r := core.NewRouter()
+	handler := func(c *core.Context) {}
 	r.Options("/", handler)
 
 	route := r.GetRoutes()[0]
@@ -83,8 +82,8 @@ func TestOptionsRequest(t *testing.T) {
 }
 
 func TestHeadRequest(t *testing.T) {
-	r := New()
-	handler := func(c *gin.Context) {}
+	r := core.NewRouter()
+	handler := func(c *core.Context) {}
 	r.Head("/", handler)
 
 	route := r.GetRoutes()[0]
@@ -93,10 +92,10 @@ func TestHeadRequest(t *testing.T) {
 	}
 }
 
-func TestGetRoutesRequest(t *testing.T) {
-	r := New()
-	r.Get("/", func(c *gin.Context) {})
-	r.Post("/", func(c *gin.Context) {})
+func TestAddMultipleRoutes(t *testing.T) {
+	r := core.NewRouter()
+	r.Get("/", func(c *core.Context) {})
+	r.Post("/", func(c *core.Context) {})
 
 	if len(r.GetRoutes()) != 2 {
 		t.Errorf("failed getting added routes")

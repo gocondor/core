@@ -85,26 +85,26 @@ func (app *App) RegisterRoutes(routes []Route, router *httprouter.Router) *httpr
 	for _, route := range routes {
 		switch route.Method {
 		case "get":
-			router.GET(route.Path, app.makeHTTPRouterHandlerFunc(route.Handler))
+			router.GET(route.Path, app.makeHTTPRouterHandlerFunc(route.Handlers))
 		case "post":
-			router.POST(route.Path, app.makeHTTPRouterHandlerFunc(route.Handler))
+			router.POST(route.Path, app.makeHTTPRouterHandlerFunc(route.Handlers))
 		case "delete":
-			router.DELETE(route.Path, app.makeHTTPRouterHandlerFunc(route.Handler))
+			router.DELETE(route.Path, app.makeHTTPRouterHandlerFunc(route.Handlers))
 		case "patch":
-			router.PATCH(route.Path, app.makeHTTPRouterHandlerFunc(route.Handler))
+			router.PATCH(route.Path, app.makeHTTPRouterHandlerFunc(route.Handlers))
 		case "put":
-			router.PUT(route.Path, app.makeHTTPRouterHandlerFunc(route.Handler))
+			router.PUT(route.Path, app.makeHTTPRouterHandlerFunc(route.Handlers))
 		case "options":
-			router.OPTIONS(route.Path, app.makeHTTPRouterHandlerFunc(route.Handler))
+			router.OPTIONS(route.Path, app.makeHTTPRouterHandlerFunc(route.Handlers))
 		case "head":
-			router.HEAD(route.Path, app.makeHTTPRouterHandlerFunc(route.Handler))
+			router.HEAD(route.Path, app.makeHTTPRouterHandlerFunc(route.Handlers))
 		}
 	}
 
 	return router
 }
 
-func (app *App) makeHTTPRouterHandlerFunc(h Handler) httprouter.Handle {
+func (app *App) makeHTTPRouterHandlerFunc(hs []Handler) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 		ctx := &Context{
 			Request: &Request{
@@ -119,8 +119,8 @@ func (app *App) makeHTTPRouterHandlerFunc(h Handler) httprouter.Handle {
 			},
 			Logger: NewLogger(filePath),
 		}
-
-		app.prepareChain(h)
+		rhs := app.revHandlers(hs)
+		app.prepareChain(rhs)
 		app.chain.execute(ctx)
 
 		for _, header := range ctx.Response.getHeaders() {
@@ -135,7 +135,9 @@ func (app *App) makeHTTPRouterHandlerFunc(h Handler) httprouter.Handle {
 			w.Header().Add("Content-Type", "application/json")
 			w.Write([]byte(ctx.Response.getJsonBody()))
 		}
+		app.t = 0
 		ctx.Response.reset()
+		app.chain.reset()
 	}
 }
 
@@ -157,7 +159,6 @@ func UseMiddleware(mw func(C *Context)) {
 }
 
 func (app *App) handleMiddlewares(ctx *Context) {
-	// check the index first
 	app.t = 0
 	if ResolveMiddlewares().getByIndex(0) != nil {
 		ResolveMiddlewares().GetMiddlewares()[0](ctx)
@@ -165,7 +166,8 @@ func (app *App) handleMiddlewares(ctx *Context) {
 }
 
 func (app *App) Next(c *Context) {
-	n := app.chain.getByIndex(app.t + 1)
+	app.t = app.t + 1
+	n := app.chain.getByIndex(app.t)
 	if n != nil {
 		n(c)
 	}
@@ -173,6 +175,10 @@ func (app *App) Next(c *Context) {
 
 type chain struct {
 	nodes []Handler
+}
+
+func (cn *chain) reset() {
+	cn.nodes = []Handler{}
 }
 
 func (c *chain) getByIndex(i int) Handler {
@@ -185,15 +191,23 @@ func (c *chain) getByIndex(i int) Handler {
 	return nil
 }
 
-func (app *App) prepareChain(h Handler) {
+func (app *App) prepareChain(hs []Handler) {
 	mw := ResolveMiddlewares().GetMiddlewares()
-	mw = append(mw, h)
+	mw = append(mw, hs...)
 	app.chain.nodes = append(app.chain.nodes, mw...)
 }
 
-func (c *chain) execute(ctx *Context) {
+func (cn *chain) execute(ctx *Context) {
 	app.t = 0
-	if c.getByIndex(0) != nil {
-		c.getByIndex(0)(ctx)
+	if cn.getByIndex(0) != nil {
+		cn.getByIndex(0)(ctx)
 	}
+}
+
+func (app *App) revHandlers(hs []Handler) []Handler {
+	var rev []Handler
+	for i := range hs {
+		rev = append(rev, hs[(len(hs)-1)-i])
+	}
+	return rev
 }

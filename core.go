@@ -70,7 +70,7 @@ func (app *App) Bootstrap() {
 func (app *App) Run(portNumber string, router *httprouter.Router) {
 	router = app.RegisterRoutes(ResolveRouter().GetRoutes(), router)
 	ee, _ := strconv.ParseInt("0x1F985", 0, 64)
-	fmt.Printf("Welcome to GoCondor %v \n", html.UnescapeString(string(ee)))
+	fmt.Printf("Welcome to GoCondor %v \n", html.UnescapeString(strconv.FormatInt(ee, 10)))
 	fmt.Printf("Listening on port %s\nWaiting for requests...\n", portNumber)
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", portNumber), router))
 }

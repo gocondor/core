@@ -2,17 +2,15 @@
 // Use of this source code is governed by MIT-style
 // license that can be found in the LICENSE file.
 
-package core_test
+package core
 
 import (
 	"fmt"
 	"testing"
-
-	"github.com/gocondor/core"
 )
 
 func TestNewRouter(t *testing.T) {
-	r := core.NewRouter()
+	r := NewRouter()
 
 	if fmt.Sprintf("%T", r) != "*core.Router" {
 		t.Error("failed asserting initiation of new router")
@@ -20,15 +18,15 @@ func TestNewRouter(t *testing.T) {
 }
 
 func TestResolveRouter(t *testing.T) {
-	r := core.ResolveRouter()
+	r := ResolveRouter()
 	if fmt.Sprintf("%T", r) != "*core.Router" {
 		t.Error("failed resolve router variable")
 	}
 }
 
 func TestGetRequest(t *testing.T) {
-	r := core.NewRouter()
-	handler := func(c *core.Context) {}
+	r := NewRouter()
+	handler := func(c *Context) {}
 	r.Get("/", handler)
 
 	route := r.GetRoutes()[0]
@@ -38,8 +36,8 @@ func TestGetRequest(t *testing.T) {
 }
 
 func TestPostRequest(t *testing.T) {
-	r := core.NewRouter()
-	handler := func(c *core.Context) {}
+	r := NewRouter()
+	handler := func(c *Context) {}
 	r.Post("/", handler)
 
 	route := r.GetRoutes()[0]
@@ -49,8 +47,8 @@ func TestPostRequest(t *testing.T) {
 }
 
 func TestDeleteRequest(t *testing.T) {
-	r := core.NewRouter()
-	handler := func(c *core.Context) {}
+	r := NewRouter()
+	handler := func(c *Context) {}
 	r.Delete("/", handler)
 
 	route := r.GetRoutes()[0]
@@ -60,8 +58,8 @@ func TestDeleteRequest(t *testing.T) {
 }
 
 func TestPutRequest(t *testing.T) {
-	r := core.NewRouter()
-	handler := func(c *core.Context) {}
+	r := NewRouter()
+	handler := func(c *Context) {}
 	r.Put("/", handler)
 
 	route := r.GetRoutes()[0]
@@ -71,8 +69,8 @@ func TestPutRequest(t *testing.T) {
 }
 
 func TestOptionsRequest(t *testing.T) {
-	r := core.NewRouter()
-	handler := func(c *core.Context) {}
+	r := NewRouter()
+	handler := func(c *Context) {}
 	r.Options("/", handler)
 
 	route := r.GetRoutes()[0]
@@ -82,8 +80,8 @@ func TestOptionsRequest(t *testing.T) {
 }
 
 func TestHeadRequest(t *testing.T) {
-	r := core.NewRouter()
-	handler := func(c *core.Context) {}
+	r := NewRouter()
+	handler := func(c *Context) {}
 	r.Head("/", handler)
 
 	route := r.GetRoutes()[0]
@@ -93,9 +91,9 @@ func TestHeadRequest(t *testing.T) {
 }
 
 func TestAddMultipleRoutes(t *testing.T) {
-	r := core.NewRouter()
-	r.Get("/", func(c *core.Context) {})
-	r.Post("/", func(c *core.Context) {})
+	r := NewRouter()
+	r.Get("/", func(c *Context) {})
+	r.Post("/", func(c *Context) {})
 
 	if len(r.GetRoutes()) != 2 {
 		t.Errorf("failed getting added routes")

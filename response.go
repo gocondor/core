@@ -28,7 +28,7 @@ func (rs *Response) WriteText(body interface{}) {
 }
 
 func (rs *Response) WriteJson(body string) {
-	if rs.textBody == "" {
+	if rs.jsonBody == "" {
 		rs.jsonBody = body
 	}
 }

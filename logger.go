@@ -26,18 +26,12 @@ func NewLogger(logsFilePath string) *Logger {
 	if err != nil {
 		panic(err)
 	}
-
-	infoLogger := log.New(logsFile, "info: ", log.LstdFlags)
-	warningLogger := log.New(logsFile, "warning: ", log.LstdFlags)
-	errorLogger := log.New(logsFile, "error: ", log.LstdFlags)
-	debugLogger := log.New(logsFile, "debug: ", log.LstdFlags)
 	l = &Logger{
-		infoLogger,
-		warningLogger,
-		errorLogger,
-		debugLogger,
+		infoLogger:    log.New(logsFile, "info: ", log.LstdFlags),
+		warningLogger: log.New(logsFile, "warning: ", log.LstdFlags),
+		errorLogger:   log.New(logsFile, "error: ", log.LstdFlags),
+		debugLogger:   log.New(logsFile, "debug: ", log.LstdFlags),
 	}
-
 	return l
 }
 

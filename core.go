@@ -22,17 +22,19 @@ var filePath string
 
 // App struct
 type App struct {
-	Features *Features
-	t        int // for trancking middlewares
-	chain    *chain
+	Features    *Features
+	t           int // for trancking middlewares
+	chain       *chain
+	middlewares *Middlewares
 }
 
 var app *App
 
 func New() *App {
 	app = &App{
-		Features: &Features{},
-		chain:    &chain{},
+		Features:    &Features{},
+		chain:       &chain{},
+		middlewares: NewMiddlewares(),
 	}
 
 	return app
@@ -58,7 +60,6 @@ func (app *App) GetLogsFile() *os.File {
 
 func (app *App) Bootstrap() {
 	NewRouter()
-	NewMiddlewares()
 	if app.Features.Database == true {
 		database.New()
 	}
@@ -80,23 +81,24 @@ func (app *App) SetEnabledFeatures(features *Features) {
 }
 
 func (app *App) RegisterRoutes(routes []Route, router *httprouter.Router) *httprouter.Router {
+	router.PanicHandler = panicHandler
 	router.NotFound = notFoundHandler{}
 	router.MethodNotAllowed = methodNotAllowed{}
 	for _, route := range routes {
 		switch route.Method {
-		case "get":
+		case GET:
 			router.GET(route.Path, app.makeHTTPRouterHandlerFunc(route.Handlers))
-		case "post":
+		case POST:
 			router.POST(route.Path, app.makeHTTPRouterHandlerFunc(route.Handlers))
-		case "delete":
+		case DELETE:
 			router.DELETE(route.Path, app.makeHTTPRouterHandlerFunc(route.Handlers))
-		case "patch":
+		case PATCH:
 			router.PATCH(route.Path, app.makeHTTPRouterHandlerFunc(route.Handlers))
-		case "put":
+		case PUT:
 			router.PUT(route.Path, app.makeHTTPRouterHandlerFunc(route.Handlers))
-		case "options":
+		case OPTIONS:
 			router.OPTIONS(route.Path, app.makeHTTPRouterHandlerFunc(route.Handlers))
-		case "head":
+		case HEAD:
 			router.HEAD(route.Path, app.makeHTTPRouterHandlerFunc(route.Handlers))
 		}
 	}
@@ -121,6 +123,7 @@ func (app *App) makeHTTPRouterHandlerFunc(hs []Handler) httprouter.Handle {
 		}
 		rhs := app.revHandlers(hs)
 		app.prepareChain(rhs)
+		app.t = 0
 		app.chain.execute(ctx)
 
 		for _, header := range ctx.Response.getHeaders() {
@@ -154,15 +157,13 @@ func (n methodNotAllowed) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Method not allowed"))
 }
 
-func UseMiddleware(mw func(C *Context)) {
-	ResolveMiddlewares().Attach(mw)
+var panicHandler = func(w http.ResponseWriter, r *http.Request, i interface{}) {
+	w.WriteHeader(http.StatusInternalServerError)
+	w.Write([]byte("internal error"))
 }
 
-func (app *App) handleMiddlewares(ctx *Context) {
-	app.t = 0
-	if ResolveMiddlewares().getByIndex(0) != nil {
-		ResolveMiddlewares().GetMiddlewares()[0](ctx)
-	}
+func UseMiddleware(mw func(c *Context)) {
+	ResolveMiddlewares().Attach(mw)
 }
 
 func (app *App) Next(c *Context) {
@@ -192,13 +193,12 @@ func (c *chain) getByIndex(i int) Handler {
 }
 
 func (app *App) prepareChain(hs []Handler) {
-	mw := ResolveMiddlewares().GetMiddlewares()
+	mw := app.middlewares.GetMiddlewares()
 	mw = append(mw, hs...)
 	app.chain.nodes = append(app.chain.nodes, mw...)
 }
 
 func (cn *chain) execute(ctx *Context) {
-	app.t = 0
 	if cn.getByIndex(0) != nil {
 		cn.getByIndex(0)(ctx)
 	}

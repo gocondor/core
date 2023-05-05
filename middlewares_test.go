@@ -52,7 +52,7 @@ func TestGetMiddleWares(t *testing.T) {
 	}
 }
 
-func TestGetByIndex(t *testing.T) {
+func TestMiddlewareGetByIndex(t *testing.T) {
 	mw := NewMiddlewares()
 	t1 := func(c *Context) {
 		c.Logger.Info("testing!")

@@ -184,7 +184,7 @@ func makeCTX(t *testing.T) *Context {
 		Response: &Response{
 			headers:        []header{},
 			textBody:       "",
-			jsonBody:       "",
+			jsonBody:       []byte(""),
 			responseWriter: httptest.NewRecorder(),
 		},
 		Logger: NewLogger(lgsPath),

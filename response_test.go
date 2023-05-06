@@ -17,9 +17,9 @@ func TestWriteText(t *testing.T) {
 func TestWriteJson(t *testing.T) {
 	res := Response{}
 	j := "{\"name\": \"test\"}"
-	res.WriteJson(j)
+	res.WriteJson([]byte(j))
 
-	if res.getJsonBody() != j {
+	if string(res.getJsonBody()) != j {
 		t.Errorf("failed wrting jsom")
 	}
 }
@@ -41,14 +41,14 @@ func TestReset(t *testing.T) {
 		t.Errorf("expecting textBody to not be empty, found empty")
 	}
 	j := "{\"name\": \"test\"}"
-	res.WriteJson(j)
-	if res.getJsonBody() == "" {
+	res.WriteJson([]byte(j))
+	if string(res.getJsonBody()) == "" {
 		t.Errorf("expecting JsonBody to not be empty, found empty")
 	}
 
 	res.reset()
 
-	if !(res.getTextBody() == "" && res.getJsonBody() == "") {
+	if !(res.getTextBody() == "" && string(res.getJsonBody()) == "") {
 		t.Errorf("failed testing response reset()")
 	}
 }

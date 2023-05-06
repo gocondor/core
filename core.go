@@ -116,7 +116,7 @@ func (app *App) makeHTTPRouterHandlerFunc(hs []Handler) httprouter.Handle {
 			Response: &Response{
 				headers:        []header{},
 				textBody:       "",
-				jsonBody:       "",
+				jsonBody:       []byte(""),
 				responseWriter: w,
 			},
 			Logger: NewLogger(filePath),
@@ -131,12 +131,12 @@ func (app *App) makeHTTPRouterHandlerFunc(hs []Handler) httprouter.Handle {
 		}
 		defer logsFile.Close()
 		if ctx.Response.getTextBody() != "" {
-			w.Header().Add("Content-Type", "text/html; charset=utf-8")
+			w.Header().Add(CONTENT_TYPE, CONTENT_TYPE_HTML)
 			w.Write([]byte(ctx.Response.getTextBody()))
 		}
-		if ctx.Response.getJsonBody() != "" {
-			w.Header().Add("Content-Type", "application/json")
-			w.Write([]byte(ctx.Response.getJsonBody()))
+		if string(ctx.Response.getJsonBody()) != "" {
+			w.Header().Add(CONTENT_TYPE, CONTENT_TYPE_JSON)
+			w.Write(ctx.Response.getJsonBody())
 		}
 		app.t = 0
 		ctx.Response.reset()

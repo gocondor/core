@@ -12,7 +12,7 @@ import (
 type Response struct {
 	headers        []header
 	textBody       string
-	jsonBody       string
+	jsonBody       []byte
 	responseWriter http.ResponseWriter
 }
 
@@ -27,8 +27,8 @@ func (rs *Response) WriteText(body interface{}) {
 	}
 }
 
-func (rs *Response) WriteJson(body string) {
-	if rs.jsonBody == "" {
+func (rs *Response) WriteJson(body []byte) {
+	if string(rs.jsonBody) == "" {
 		rs.jsonBody = body
 	}
 }
@@ -37,7 +37,7 @@ func (rs *Response) getTextBody() string {
 	return rs.textBody
 }
 
-func (rs *Response) getJsonBody() string {
+func (rs *Response) getJsonBody() []byte {
 	return rs.jsonBody
 }
 
@@ -112,5 +112,5 @@ func (rs *Response) castBasicVarsToString(data interface{}) string {
 
 func (rs *Response) reset() {
 	rs.textBody = ""
-	rs.jsonBody = ""
+	rs.jsonBody = []byte("")
 }

@@ -49,7 +49,7 @@ func TestMakeHTTPHandlerFunc(t *testing.T) {
 		},
 	}
 	h := app.makeHTTPRouterHandlerFunc(hs)
-	r := httptest.NewRequest("GET", "http://localhost", nil)
+	r := httptest.NewRequest(GET, LOCALHOST, nil)
 	w := httptest.NewRecorder()
 	h(w, r, []httprouter.Param{{Key: "tkey", Value: "tvalue"}})
 	rsp := w.Result()
@@ -64,7 +64,7 @@ func TestMakeHTTPHandlerFunc(t *testing.T) {
 
 func TestMethodNotAllowedHandler(t *testing.T) {
 	m := &methodNotAllowed{}
-	r := httptest.NewRequest("GET", "http://localhost", nil)
+	r := httptest.NewRequest(GET, LOCALHOST, nil)
 	w := httptest.NewRecorder()
 	m.ServeHTTP(w, r)
 	rsp := w.Result()
@@ -75,7 +75,7 @@ func TestMethodNotAllowedHandler(t *testing.T) {
 
 func TestNotFoundHandler(t *testing.T) {
 	n := &notFoundHandler{}
-	r := httptest.NewRequest("GET", "http://localhost", nil)
+	r := httptest.NewRequest(GET, LOCALHOST, nil)
 	w := httptest.NewRecorder()
 	n.ServeHTTP(w, r)
 	rsp := w.Result()
@@ -178,7 +178,7 @@ func makeCTX(t *testing.T) *Context {
 	lgsPath := filepath.Join(t.TempDir(), uuid.NewString())
 	return &Context{
 		Request: &Request{
-			httpRequest:    httptest.NewRequest("GET", "http://localhost", nil),
+			httpRequest:    httptest.NewRequest(GET, LOCALHOST, nil),
 			httpPathParams: nil,
 		},
 		Response: &Response{

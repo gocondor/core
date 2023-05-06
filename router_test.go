@@ -26,7 +26,9 @@ func TestResolveRouter(t *testing.T) {
 
 func TestGetRequest(t *testing.T) {
 	r := NewRouter()
-	handler := func(c *Context) {}
+	handler := func(c *Context) {
+		c.Logger.Info(TEST_STR)
+	}
 	r.Get("/", handler)
 
 	route := r.GetRoutes()[0]
@@ -37,7 +39,9 @@ func TestGetRequest(t *testing.T) {
 
 func TestPostRequest(t *testing.T) {
 	r := NewRouter()
-	handler := func(c *Context) {}
+	handler := func(c *Context) {
+		c.Logger.Info(TEST_STR)
+	}
 	r.Post("/", handler)
 
 	route := r.GetRoutes()[0]
@@ -48,7 +52,9 @@ func TestPostRequest(t *testing.T) {
 
 func TestDeleteRequest(t *testing.T) {
 	r := NewRouter()
-	handler := func(c *Context) {}
+	handler := func(c *Context) {
+		c.Logger.Info(TEST_STR)
+	}
 	r.Delete("/", handler)
 
 	route := r.GetRoutes()[0]
@@ -59,7 +65,9 @@ func TestDeleteRequest(t *testing.T) {
 
 func TestPutRequest(t *testing.T) {
 	r := NewRouter()
-	handler := func(c *Context) {}
+	handler := func(c *Context) {
+		c.Logger.Info(TEST_STR)
+	}
 	r.Put("/", handler)
 
 	route := r.GetRoutes()[0]
@@ -70,7 +78,9 @@ func TestPutRequest(t *testing.T) {
 
 func TestOptionsRequest(t *testing.T) {
 	r := NewRouter()
-	handler := func(c *Context) {}
+	handler := func(c *Context) {
+		c.Logger.Info(TEST_STR)
+	}
 	r.Options("/", handler)
 
 	route := r.GetRoutes()[0]
@@ -81,7 +91,9 @@ func TestOptionsRequest(t *testing.T) {
 
 func TestHeadRequest(t *testing.T) {
 	r := NewRouter()
-	handler := func(c *Context) {}
+	handler := func(c *Context) {
+		c.Logger.Info(TEST_STR)
+	}
 	r.Head("/", handler)
 
 	route := r.GetRoutes()[0]
@@ -92,8 +104,12 @@ func TestHeadRequest(t *testing.T) {
 
 func TestAddMultipleRoutes(t *testing.T) {
 	r := NewRouter()
-	r.Get("/", func(c *Context) {})
-	r.Post("/", func(c *Context) {})
+	r.Get("/", func(c *Context) {
+		c.Logger.Info(TEST_STR)
+	})
+	r.Post("/", func(c *Context) {
+		c.Logger.Info(TEST_STR)
+	})
 
 	if len(r.GetRoutes()) != 2 {
 		t.Errorf("failed getting added routes")

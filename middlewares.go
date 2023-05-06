@@ -30,8 +30,8 @@ func (m *Middlewares) GetMiddlewares() []Handler {
 }
 
 func (m *Middlewares) getByIndex(i int) Handler {
-	for key, _ := range m.middlewares {
-		if key == i {
+	for k := range m.middlewares {
+		if k == i {
 			return m.middlewares[i]
 		}
 	}

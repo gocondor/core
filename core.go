@@ -183,8 +183,8 @@ func (cn *chain) reset() {
 }
 
 func (c *chain) getByIndex(i int) Handler {
-	for key, _ := range c.nodes {
-		if key == i {
+	for k := range c.nodes {
+		if k == i {
 			return c.nodes[i]
 		}
 	}

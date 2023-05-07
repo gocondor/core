@@ -10,10 +10,10 @@ import (
 )
 
 type Response struct {
-	headers        []header
-	textBody       string
-	jsonBody       []byte
-	responseWriter http.ResponseWriter
+	headers            []header
+	textBody           string
+	jsonBody           []byte
+	HttpResponseWriter http.ResponseWriter
 }
 
 type header struct {

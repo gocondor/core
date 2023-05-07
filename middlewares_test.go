@@ -28,7 +28,7 @@ func TestResloveMiddleWares(t *testing.T) {
 func TestAttach(t *testing.T) {
 	mw := NewMiddlewares()
 	tmw := func(c *Context) {
-		c.Logger.Info("Testing!")
+		c.LogInfo("Testing!")
 	}
 	mw.Attach(tmw)
 	mws := mw.getByIndex(0)
@@ -40,10 +40,10 @@ func TestAttach(t *testing.T) {
 func TestGetMiddleWares(t *testing.T) {
 	mw := NewMiddlewares()
 	t1 := func(c *Context) {
-		c.Logger.Info("testing1!")
+		c.LogInfo("testing1!")
 	}
 	t2 := func(c *Context) {
-		c.Logger.Info("testing2!")
+		c.LogInfo("testing2!")
 	}
 	mw.Attach(t1)
 	mw.Attach(t2)
@@ -55,7 +55,7 @@ func TestGetMiddleWares(t *testing.T) {
 func TestMiddlewareGetByIndex(t *testing.T) {
 	mw := NewMiddlewares()
 	t1 := func(c *Context) {
-		c.Logger.Info("testing!")
+		c.LogInfo("testing!")
 	}
 	mw.Attach(t1)
 	if reflect.ValueOf(mw.getByIndex(0)).Pointer() != reflect.ValueOf(t1).Pointer() {

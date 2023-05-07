@@ -39,18 +39,18 @@ func ResolveLogger() *Logger {
 	return l
 }
 
-func (l *Logger) Info(msg string) {
+func (l *Logger) Info(msg interface{}) {
 	l.infoLogger.Println(msg)
 }
 
-func (l *Logger) Debug(msg string) {
+func (l *Logger) Debug(msg interface{}) {
 	l.debugLogger.Println(msg)
 }
 
-func (l *Logger) Warning(msg string) {
+func (l *Logger) Warning(msg interface{}) {
 	l.warningLogger.Println(msg)
 }
 
-func (l *Logger) Error(msg string) {
+func (l *Logger) Error(msg interface{}) {
 	l.errorLogger.Println(msg)
 }

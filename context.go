@@ -12,19 +12,58 @@ import (
 type Context struct {
 	Request  *Request
 	Response *Response
-	Logger   *Logger
+	logger   *Logger
 }
 
-func (c *Context) Debug(d interface{}) {
-	m := reflect.ValueOf(d)
+func (c *Context) DebugAny(variable interface{}) {
+	m := reflect.ValueOf(variable)
 	if m.Kind() == reflect.Pointer {
 		m = m.Elem()
 	}
-	formatted := fmt.Sprintf("Type: %T | underlaying type: %v | value: %v", d, m.Kind(), d)
+	formatted := fmt.Sprintf("Type: %T (%v) | value: %v", variable, m.Kind(), variable)
 	fmt.Println(formatted)
-	c.Response.responseWriter.Write([]byte(formatted))
+	c.Response.HttpResponseWriter.Write([]byte(formatted))
 }
 
 func (c *Context) Next() {
 	ResolveApp().Next(c)
+}
+
+func (c *Context) prepare(ctx *Context) {
+	ctx.Request.HttpRequest.ParseMultipartForm(20000000)
+}
+
+func (c *Context) LogInfo(msg interface{}) {
+	ResolveLogger().Info(msg)
+}
+
+func (c *Context) LogError(msg interface{}) {
+	ResolveLogger().Error(msg)
+}
+
+func (c *Context) LogWarning(msg interface{}) {
+	ResolveLogger().Warning(msg)
+}
+
+func (c *Context) LogDebug(msg interface{}) {
+	ResolveLogger().Debug(msg)
+}
+
+func (c *Context) GetPathParam(key string) string {
+	return c.Request.httpPathParams.ByName(key)
+}
+
+func (c *Context) GetRequestParam(key string) string {
+	return c.Request.HttpRequest.FormValue(key)
+}
+
+func (c *Context) RequestParamExists(key string) bool {
+	return c.Request.HttpRequest.Form.Has(key)
+}
+
+// TODO implement
+func (c *Context) GetRequestFile(name string) {
+	file, fileHeader, _ := c.Request.HttpRequest.FormFile(name)
+	c.LogInfo(fileHeader.Filename)
+	fmt.Println(file)
 }

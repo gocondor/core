@@ -87,7 +87,7 @@ func TestNotFoundHandler(t *testing.T) {
 
 func TestUseMiddleware(t *testing.T) {
 	app := New()
-	UseMiddleware(func(c *Context) { c.Logger.Info("Testing!") })
+	UseMiddleware(func(c *Context) { c.LogInfo("Testing!") })
 	if len(app.middlewares.GetMiddlewares()) != 1 {
 		t.Errorf("failed testing use middleware")
 	}
@@ -96,7 +96,7 @@ func TestUseMiddleware(t *testing.T) {
 func TestChainReset(t *testing.T) {
 	c := &chain{}
 	c.nodes = []Handler{
-		func(c *Context) { c.Logger.Info("Testing1!") }, func(c *Context) { c.Logger.Info("Testing2!") },
+		func(c *Context) { c.LogInfo("Testing1!") }, func(c *Context) { c.LogInfo("Testing2!") },
 	}
 
 	c.reset()
@@ -128,7 +128,7 @@ func TestChainGetByIndex(t *testing.T) {
 	c := &chain{}
 	tf := filepath.Join(t.TempDir(), uuid.NewString())
 	c.nodes = []Handler{
-		func(c *Context) { c.Logger.Info("testing!") },
+		func(c *Context) { c.LogInfo("testing!") },
 		func(c *Context) {
 			f, _ := os.Create(tf)
 			f.WriteString("DFT2V56H")
@@ -143,10 +143,10 @@ func TestChainGetByIndex(t *testing.T) {
 
 func TestPrepareChain(t *testing.T) {
 	app := New()
-	UseMiddleware(func(c *Context) { c.Logger.Info("Testing!") })
+	UseMiddleware(func(c *Context) { c.LogInfo("Testing!") })
 	hs := []Handler{
-		func(c *Context) { c.Logger.Info("testing1!") },
-		func(c *Context) { c.Logger.Info("testing2!") },
+		func(c *Context) { c.LogInfo("testing1!") },
+		func(c *Context) { c.LogInfo("testing2!") },
 	}
 	app.prepareChain(hs)
 	if len(app.chain.nodes) != 3 {
@@ -178,23 +178,23 @@ func makeCTX(t *testing.T) *Context {
 	lgsPath := filepath.Join(t.TempDir(), uuid.NewString())
 	return &Context{
 		Request: &Request{
-			httpRequest:    httptest.NewRequest(GET, LOCALHOST, nil),
+			HttpRequest:    httptest.NewRequest(GET, LOCALHOST, nil),
 			httpPathParams: nil,
 		},
 		Response: &Response{
-			headers:        []header{},
-			textBody:       "",
-			jsonBody:       []byte(""),
-			responseWriter: httptest.NewRecorder(),
+			headers:            []header{},
+			textBody:           "",
+			jsonBody:           []byte(""),
+			HttpResponseWriter: httptest.NewRecorder(),
 		},
-		Logger: NewLogger(lgsPath),
+		logger: NewLogger(lgsPath),
 	}
 }
 
 func TestRevHAndlers(t *testing.T) {
 	app := New()
-	t1 := func(c *Context) { c.Logger.Info("Testing1!") }
-	t2 := func(c *Context) { c.Logger.Info("Testing2!") }
+	t1 := func(c *Context) { c.LogInfo("Testing1!") }
+	t2 := func(c *Context) { c.LogInfo("Testing2!") }
 
 	handlers := []Handler{t1, t2}
 	reved := app.revHandlers(handlers)

@@ -110,17 +110,18 @@ func (app *App) makeHTTPRouterHandlerFunc(hs []Handler) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 		ctx := &Context{
 			Request: &Request{
-				httpRequest:    r,
+				HttpRequest:    r,
 				httpPathParams: ps,
 			},
 			Response: &Response{
-				headers:        []header{},
-				textBody:       "",
-				jsonBody:       []byte(""),
-				responseWriter: w,
+				headers:            []header{},
+				textBody:           "",
+				jsonBody:           []byte(""),
+				HttpResponseWriter: w,
 			},
-			Logger: NewLogger(filePath),
+			logger: NewLogger(filePath),
 		}
+		ctx.prepare(ctx)
 		rhs := app.revHandlers(hs)
 		app.prepareChain(rhs)
 		app.t = 0

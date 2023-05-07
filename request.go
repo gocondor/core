@@ -11,6 +11,6 @@ import (
 )
 
 type Request struct {
-	httpRequest    *http.Request
+	HttpRequest    *http.Request
 	httpPathParams httprouter.Params
 }

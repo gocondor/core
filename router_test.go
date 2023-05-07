@@ -27,7 +27,7 @@ func TestResolveRouter(t *testing.T) {
 func TestGetRequest(t *testing.T) {
 	r := NewRouter()
 	handler := func(c *Context) {
-		c.Logger.Info(TEST_STR)
+		c.LogInfo(TEST_STR)
 	}
 	r.Get("/", handler)
 
@@ -40,7 +40,7 @@ func TestGetRequest(t *testing.T) {
 func TestPostRequest(t *testing.T) {
 	r := NewRouter()
 	handler := func(c *Context) {
-		c.Logger.Info(TEST_STR)
+		c.LogInfo(TEST_STR)
 	}
 	r.Post("/", handler)
 
@@ -53,7 +53,7 @@ func TestPostRequest(t *testing.T) {
 func TestDeleteRequest(t *testing.T) {
 	r := NewRouter()
 	handler := func(c *Context) {
-		c.Logger.Info(TEST_STR)
+		c.LogInfo(TEST_STR)
 	}
 	r.Delete("/", handler)
 
@@ -66,7 +66,7 @@ func TestDeleteRequest(t *testing.T) {
 func TestPutRequest(t *testing.T) {
 	r := NewRouter()
 	handler := func(c *Context) {
-		c.Logger.Info(TEST_STR)
+		c.LogInfo(TEST_STR)
 	}
 	r.Put("/", handler)
 
@@ -79,7 +79,7 @@ func TestPutRequest(t *testing.T) {
 func TestOptionsRequest(t *testing.T) {
 	r := NewRouter()
 	handler := func(c *Context) {
-		c.Logger.Info(TEST_STR)
+		c.LogInfo(TEST_STR)
 	}
 	r.Options("/", handler)
 
@@ -92,7 +92,7 @@ func TestOptionsRequest(t *testing.T) {
 func TestHeadRequest(t *testing.T) {
 	r := NewRouter()
 	handler := func(c *Context) {
-		c.Logger.Info(TEST_STR)
+		c.LogInfo(TEST_STR)
 	}
 	r.Head("/", handler)
 
@@ -105,10 +105,10 @@ func TestHeadRequest(t *testing.T) {
 func TestAddMultipleRoutes(t *testing.T) {
 	r := NewRouter()
 	r.Get("/", func(c *Context) {
-		c.Logger.Info(TEST_STR)
+		c.LogInfo(TEST_STR)
 	})
 	r.Post("/", func(c *Context) {
-		c.Logger.Info(TEST_STR)
+		c.LogInfo(TEST_STR)
 	})
 
 	if len(r.GetRoutes()) != 2 {

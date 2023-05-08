@@ -13,8 +13,6 @@ import (
 	"path/filepath"
 	"reflect"
 	"strings"
-
-	"github.com/google/uuid"
 )
 
 type Context struct {
@@ -74,11 +72,17 @@ func (c *Context) GetHeader(key string) string {
 }
 
 func (c *Context) GetUploadedFile(name string) *UploadedFileInfo {
-	file, fileHeader, _ := c.Request.HttpRequest.FormFile(name)
+	file, fileHeader, err := c.Request.HttpRequest.FormFile(name)
+	if err != nil {
+		panic(fmt.Sprintf("error with file,[%v]", err.Error()))
+	}
 	defer file.Close()
 	ext := strings.TrimPrefix(path.Ext(fileHeader.Filename), ".")
-	tmpFilePath := filepath.Join(os.TempDir(), uuid.NewString()+"."+ext)
-	tmpFile, _ := os.Create(tmpFilePath)
+	tmpFilePath := filepath.Join(os.TempDir(), fileHeader.Filename)
+	tmpFile, err := os.Create(tmpFilePath)
+	if err != nil {
+		panic(fmt.Sprintf("error with file,[%v]", err.Error()))
+	}
 	buff := make([]byte, 100)
 	for {
 		n, err := file.Read(buff)
@@ -90,7 +94,10 @@ func (c *Context) GetUploadedFile(name string) *UploadedFileInfo {
 		}
 		n, _ = tmpFile.Write(buff[:n])
 	}
-	tmpFileInfo, _ := os.Stat(tmpFilePath)
+	tmpFileInfo, err := os.Stat(tmpFilePath)
+	if err != nil {
+		panic(fmt.Sprintf("error with file,[%v]", err.Error()))
+	}
 	defer tmpFile.Close()
 	uploadedFileInfo := &UploadedFileInfo{
 		FullPath:             tmpFilePath,
@@ -102,7 +109,7 @@ func (c *Context) GetUploadedFile(name string) *UploadedFileInfo {
 	return uploadedFileInfo
 }
 
-func (c *Context) MoveFile(sourceFilePath string, destFolderPath string) error {
+func (c *Context) MoveFile(sourceFilePath string, destFolderPath string, newFileName string) error {
 	os.MkdirAll(destFolderPath, 644)
 	srcFileInfo, err := os.Stat(sourceFilePath)
 	if err != nil {
@@ -116,7 +123,7 @@ func (c *Context) MoveFile(sourceFilePath string, destFolderPath string) error {
 		return err
 	}
 	defer srcFile.Close()
-	destFilePath := filepath.Join(destFolderPath, srcFileInfo.Name())
+	destFilePath := filepath.Join(destFolderPath, newFileName)
 	fmt.Println(srcFileInfo.Name())
 	destFile, err := os.OpenFile(destFilePath, os.O_CREATE|os.O_RDWR|os.O_APPEND, 744)
 	if err != nil {

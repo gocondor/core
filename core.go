@@ -9,6 +9,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"runtime/debug"
 	"strconv"
 	"strings"
 
@@ -19,6 +20,8 @@ import (
 )
 
 var filePath string
+
+var logger *Logger
 
 // App struct
 type App struct {
@@ -66,6 +69,7 @@ func (app *App) Bootstrap() {
 	if app.Features.Cache == true {
 		cache.New(app.Features.Cache)
 	}
+	logger = NewLogger(filePath)
 }
 
 func (app *App) Run(portNumber string, router *httprouter.Router) {
@@ -119,7 +123,7 @@ func (app *App) makeHTTPRouterHandlerFunc(hs []Handler) httprouter.Handle {
 				jsonBody:           []byte(""),
 				HttpResponseWriter: w,
 			},
-			logger: NewLogger(filePath),
+			logger: logger,
 		}
 		ctx.prepare(ctx)
 		rhs := app.revHandlers(hs)
@@ -149,18 +153,34 @@ type notFoundHandler struct{}
 type methodNotAllowed struct{}
 
 func (n notFoundHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(404)
-	w.Write([]byte("Not Found"))
+	// TODO handle debug mode flag
+	w.WriteHeader(http.StatusNotFound)
+	res := "{\"message\": \"Not Found\"}"
+	logger.Error("Not Found")
+	logger.Error(debug.Stack())
+	w.Header().Add(CONTENT_TYPE, CONTENT_TYPE_JSON)
+	w.Write([]byte(res))
 }
 
 func (n methodNotAllowed) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(405)
-	w.Write([]byte("Method not allowed"))
+	// TODO handle debug mode flag
+	w.WriteHeader(http.StatusMethodNotAllowed)
+	res := "{\"message\": \"Method not allowed\"}"
+	logger.Error("Method not allowed")
+	logger.Error(debug.Stack())
+	w.Header().Add(CONTENT_TYPE, CONTENT_TYPE_JSON)
+	w.Write([]byte(res))
 }
 
-var panicHandler = func(w http.ResponseWriter, r *http.Request, i interface{}) {
+var panicHandler = func(w http.ResponseWriter, r *http.Request, e interface{}) {
+	// TODO handle debug mode flag
 	w.WriteHeader(http.StatusInternalServerError)
-	w.Write([]byte("internal error"))
+	res := fmt.Sprintf("{\"message\": \"[internal error]: %v\", \"stack trace\": \"%v\"}", e, string(debug.Stack()))
+	logger.Error(fmt.Sprintf("[internal error]: %v", e))
+	logger.Error(string(debug.Stack()))
+	debug.PrintStack()
+	w.Header().Add(CONTENT_TYPE, CONTENT_TYPE_JSON)
+	w.Write([]byte(res))
 }
 
 func UseMiddleware(mw func(c *Context)) {

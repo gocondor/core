@@ -69,6 +69,10 @@ func (c *Context) RequestParamExists(key string) bool {
 	return c.Request.HttpRequest.Form.Has(key)
 }
 
+func (c *Context) GetHeader(key string) string {
+	return c.Request.HttpRequest.Header.Get(key)
+}
+
 func (c *Context) GetUploadedFile(name string) *UploadedFileInfo {
 	file, fileHeader, _ := c.Request.HttpRequest.FormFile(name)
 	defer file.Close()

@@ -13,6 +13,7 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/gocondor/core/logger"
 	"github.com/google/uuid"
 	"github.com/joho/godotenv"
 	"github.com/julienschmidt/httprouter"
@@ -41,7 +42,7 @@ func TestSetEnv(t *testing.T) {
 func TestMakeHTTPHandlerFunc(t *testing.T) {
 	app := New()
 	tmpFile := filepath.Join(t.TempDir(), uuid.NewString())
-	app.SetLogsDriver(&LogFileDriver{
+	app.SetLogsDriver(&logger.LogFileDriver{
 		FilePath: filepath.Join(t.TempDir(), uuid.NewString()),
 	})
 	hs := []Handler{
@@ -66,7 +67,7 @@ func TestMakeHTTPHandlerFunc(t *testing.T) {
 
 func TestMethodNotAllowedHandler(t *testing.T) {
 	a := New()
-	a.SetLogsDriver(&LogNullDriver{})
+	a.SetLogsDriver(&logger.LogNullDriver{})
 	a.Bootstrap()
 	m := &methodNotAllowed{}
 	r := httptest.NewRequest(GET, LOCALHOST, nil)
@@ -192,7 +193,7 @@ func makeCTX(t *testing.T) *Context {
 			jsonBody:           []byte(""),
 			HttpResponseWriter: httptest.NewRecorder(),
 		},
-		logger: NewLogger(&LogFileDriver{
+		logger: logger.NewLogger(&logger.LogFileDriver{
 			FilePath: lgsPath,
 		}),
 	}

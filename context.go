@@ -13,12 +13,14 @@ import (
 	"path/filepath"
 	"reflect"
 	"strings"
+
+	"github.com/gocondor/core/logger"
 )
 
 type Context struct {
 	Request  *Request
 	Response *Response
-	logger   *Logger
+	logger   *logger.Logger
 }
 
 func (c *Context) DebugAny(variable interface{}) {
@@ -40,19 +42,19 @@ func (c *Context) prepare(ctx *Context) {
 }
 
 func (c *Context) LogInfo(msg interface{}) {
-	ResolveLogger().Info(msg)
+	logger.ResolveLogger().Info(msg)
 }
 
 func (c *Context) LogError(msg interface{}) {
-	ResolveLogger().Error(msg)
+	logger.ResolveLogger().Error(msg)
 }
 
 func (c *Context) LogWarning(msg interface{}) {
-	ResolveLogger().Warning(msg)
+	logger.ResolveLogger().Warning(msg)
 }
 
 func (c *Context) LogDebug(msg interface{}) {
-	ResolveLogger().Debug(msg)
+	logger.ResolveLogger().Debug(msg)
 }
 
 func (c *Context) GetPathParam(key string) string {

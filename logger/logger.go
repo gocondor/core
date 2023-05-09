@@ -2,7 +2,7 @@
 // Use of this source code is governed by MIT-style
 // license that can be found in the LICENSE file.
 
-package core
+package logger
 
 import (
 	"io"
@@ -22,7 +22,7 @@ type Logger struct {
 
 var l *Logger
 
-type loggerDriver interface {
+type LogsDriver interface {
 	GetTarget() interface{}
 }
 
@@ -40,7 +40,7 @@ func (f *LogFileDriver) GetTarget() interface{} {
 	return f.FilePath
 }
 
-func NewLogger(driver loggerDriver) *Logger {
+func NewLogger(driver LogsDriver) *Logger {
 	if driver.GetTarget() == nil {
 		l = &Logger{
 			infoLogger:    log.New(io.Discard, "info: ", log.LstdFlags),
@@ -85,4 +85,10 @@ func (l *Logger) Warning(msg interface{}) {
 
 func (l *Logger) Error(msg interface{}) {
 	l.errorLogger.Println(msg)
+}
+
+func CloseLogsFile() {
+	if logsFile != nil {
+		defer logsFile.Close()
+	}
 }

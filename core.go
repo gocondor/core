@@ -15,13 +15,14 @@ import (
 
 	"github.com/gocondor/core/cache"
 	"github.com/gocondor/core/database"
+	"github.com/gocondor/core/logger"
 	"github.com/julienschmidt/httprouter"
 	"golang.org/x/net/html"
 )
 
-var logsDriver loggerDriver
+var logsDriver logger.LogsDriver
 
-var logger *Logger
+var loggr *logger.Logger
 
 // App struct
 type App struct {
@@ -53,12 +54,8 @@ func (app *App) SetEnv(env map[string]string) {
 	}
 }
 
-func (app *App) SetLogsDriver(d loggerDriver) {
+func (app *App) SetLogsDriver(d logger.LogsDriver) {
 	logsDriver = d
-}
-
-func (app *App) GetLogsFile() *os.File {
-	return logsFile
 }
 
 func (app *App) Bootstrap() {
@@ -69,7 +66,7 @@ func (app *App) Bootstrap() {
 	if app.Features.Cache == true {
 		cache.New(app.Features.Cache)
 	}
-	logger = NewLogger(logsDriver)
+	loggr = logger.NewLogger(logsDriver)
 }
 
 func (app *App) Run(portNumber string, router *httprouter.Router) {
@@ -123,7 +120,7 @@ func (app *App) makeHTTPRouterHandlerFunc(hs []Handler) httprouter.Handle {
 				jsonBody:           []byte(""),
 				HttpResponseWriter: w,
 			},
-			logger: logger,
+			logger: loggr,
 		}
 		ctx.prepare(ctx)
 		rhs := app.revHandlers(hs)
@@ -134,7 +131,7 @@ func (app *App) makeHTTPRouterHandlerFunc(hs []Handler) httprouter.Handle {
 		for _, header := range ctx.Response.getHeaders() {
 			w.Header().Add(header.key, header.val)
 		}
-		defer logsFile.Close()
+		logger.CloseLogsFile()
 		if ctx.Response.getTextBody() != "" {
 			w.Header().Add(CONTENT_TYPE, CONTENT_TYPE_HTML)
 			w.Write([]byte(ctx.Response.getTextBody()))
@@ -156,8 +153,8 @@ func (n notFoundHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// TODO handle debug mode flag
 	w.WriteHeader(http.StatusNotFound)
 	res := "{\"message\": \"Not Found\"}"
-	logger.Error("Not Found")
-	logger.Error(debug.Stack())
+	loggr.Error("Not Found")
+	loggr.Error(debug.Stack())
 	w.Header().Add(CONTENT_TYPE, CONTENT_TYPE_JSON)
 	w.Write([]byte(res))
 }
@@ -166,8 +163,8 @@ func (n methodNotAllowed) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// TODO handle debug mode flag
 	w.WriteHeader(http.StatusMethodNotAllowed)
 	res := "{\"message\": \"Method not allowed\"}"
-	logger.Error("Method not allowed")
-	logger.Error(debug.Stack())
+	loggr.Error("Method not allowed")
+	loggr.Error(debug.Stack())
 	w.Header().Add(CONTENT_TYPE, CONTENT_TYPE_JSON)
 	w.Write([]byte(res))
 }
@@ -176,8 +173,8 @@ var panicHandler = func(w http.ResponseWriter, r *http.Request, e interface{}) {
 	// TODO handle debug mode flag
 	w.WriteHeader(http.StatusInternalServerError)
 	res := fmt.Sprintf("{\"message\": \"[internal error]: %v\", \"stack trace\": \"%v\"}", e, string(debug.Stack()))
-	logger.Error(fmt.Sprintf("[internal error]: %v", e))
-	logger.Error(string(debug.Stack()))
+	loggr.Error(fmt.Sprintf("[internal error]: %v", e))
+	loggr.Error(string(debug.Stack()))
 	debug.PrintStack()
 	w.Header().Add(CONTENT_TYPE, CONTENT_TYPE_JSON)
 	w.Write([]byte(res))

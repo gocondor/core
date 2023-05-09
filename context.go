@@ -156,3 +156,8 @@ type UploadedFileInfo struct {
 	Extension            string
 	Size                 int
 }
+
+func (c *Context) GetBaseDirPath() string {
+	wd, _ := os.Getwd()
+	return wd
+}

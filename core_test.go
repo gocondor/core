@@ -41,7 +41,9 @@ func TestSetEnv(t *testing.T) {
 func TestMakeHTTPHandlerFunc(t *testing.T) {
 	app := New()
 	tmpFile := filepath.Join(t.TempDir(), uuid.NewString())
-	app.SetLogsFilePath(filepath.Join(t.TempDir(), uuid.NewString()))
+	app.SetLogsDriver(&LogFileDriver{
+		FilePath: filepath.Join(t.TempDir(), uuid.NewString()),
+	})
 	hs := []Handler{
 		func(c *Context) {
 			f, _ := os.Create(tmpFile)
@@ -63,6 +65,9 @@ func TestMakeHTTPHandlerFunc(t *testing.T) {
 }
 
 func TestMethodNotAllowedHandler(t *testing.T) {
+	a := New()
+	a.SetLogsDriver(&LogNullDriver{})
+	a.Bootstrap()
 	m := &methodNotAllowed{}
 	r := httptest.NewRequest(GET, LOCALHOST, nil)
 	w := httptest.NewRecorder()
@@ -187,7 +192,9 @@ func makeCTX(t *testing.T) *Context {
 			jsonBody:           []byte(""),
 			HttpResponseWriter: httptest.NewRecorder(),
 		},
-		logger: NewLogger(lgsPath),
+		logger: NewLogger(&LogFileDriver{
+			FilePath: lgsPath,
+		}),
 	}
 }
 

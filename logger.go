@@ -5,6 +5,7 @@
 package core
 
 import (
+	"io"
 	"log"
 	"os"
 )
@@ -21,8 +22,39 @@ type Logger struct {
 
 var l *Logger
 
-func NewLogger(logsFilePath string) *Logger {
-	logsFile, err := os.OpenFile(logsFilePath, os.O_CREATE|os.O_APPEND|os.O_RDWR, 0644)
+type loggerDriver interface {
+	GetTarget() interface{}
+}
+
+type LogFileDriver struct {
+	FilePath string
+}
+
+type LogNullDriver struct{}
+
+func (n *LogNullDriver) GetTarget() interface{} {
+	return nil
+}
+
+func (f *LogFileDriver) GetTarget() interface{} {
+	return f.FilePath
+}
+
+func NewLogger(driver loggerDriver) *Logger {
+	if driver.GetTarget() == nil {
+		l = &Logger{
+			infoLogger:    log.New(io.Discard, "info: ", log.LstdFlags),
+			warningLogger: log.New(io.Discard, "warning: ", log.LstdFlags),
+			errorLogger:   log.New(io.Discard, "error: ", log.LstdFlags),
+			debugLogger:   log.New(io.Discard, "debug: ", log.LstdFlags),
+		}
+		return l
+	}
+	path, ok := driver.GetTarget().(string)
+	if !ok {
+		panic("something wrong with the file path")
+	}
+	logsFile, err := os.OpenFile(path, os.O_CREATE|os.O_APPEND|os.O_RDWR, 0644)
 	if err != nil {
 		panic(err)
 	}

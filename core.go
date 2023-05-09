@@ -19,7 +19,7 @@ import (
 	"golang.org/x/net/html"
 )
 
-var filePath string
+var logsDriver loggerDriver
 
 var logger *Logger
 
@@ -53,8 +53,8 @@ func (app *App) SetEnv(env map[string]string) {
 	}
 }
 
-func (app *App) SetLogsFilePath(f string) {
-	filePath = f
+func (app *App) SetLogsDriver(d loggerDriver) {
+	logsDriver = d
 }
 
 func (app *App) GetLogsFile() *os.File {
@@ -69,7 +69,7 @@ func (app *App) Bootstrap() {
 	if app.Features.Cache == true {
 		cache.New(app.Features.Cache)
 	}
-	logger = NewLogger(filePath)
+	logger = NewLogger(logsDriver)
 }
 
 func (app *App) Run(portNumber string, router *httprouter.Router) {

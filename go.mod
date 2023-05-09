@@ -2,6 +2,8 @@ module github.com/gocondor/core
 
 replace github.com/gocondor/core/logger => ./logger
 
+replace github.com/gocondor/core/env => ./env
+
 go 1.20
 
 require (

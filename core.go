@@ -8,10 +8,8 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"os"
 	"runtime/debug"
 	"strconv"
-	"strings"
 
 	"github.com/gocondor/core/cache"
 	"github.com/gocondor/core/database"
@@ -46,12 +44,6 @@ func New() *App {
 
 func ResolveApp() *App {
 	return app
-}
-
-func (app *App) SetEnv(env map[string]string) {
-	for key, val := range env {
-		os.Setenv(strings.TrimSpace(key), strings.TrimSpace(val))
-	}
 }
 
 func (app *App) SetLogsDriver(d logger.LogsDriver) {

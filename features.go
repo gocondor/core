@@ -12,3 +12,8 @@ type Features struct {
 	Sessions       bool
 	Authentication bool
 }
+
+type AppConfig struct {
+	AppENV        string
+	UseDotEnvFile bool
+}

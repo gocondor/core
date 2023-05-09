@@ -13,6 +13,7 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/gocondor/core/env"
 	"github.com/gocondor/core/logger"
 	"github.com/google/uuid"
 	"github.com/joho/godotenv"
@@ -27,12 +28,12 @@ func TestNew(t *testing.T) {
 }
 
 func TestSetEnv(t *testing.T) {
-	env, err := godotenv.Read("./testingdata/.env")
+	envVars, err := godotenv.Read("./testingdata/.env")
 	if err != nil {
 		t.Errorf("failed reading .env file")
 	}
-	app := New()
-	app.SetEnv(env)
+
+	env.SetEnvVars(envVars)
 
 	if os.Getenv("KEY_ONE") != "VAL_ONE" || os.Getenv("KEY_TWO") != "VAL_TWO" {
 		t.Errorf("failed to set env vars")

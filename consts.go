@@ -11,6 +11,6 @@ const CONTENT_TYPE string = "content-Type"
 const CONTENT_TYPE_HTML string = "text/html; charset=utf-8"
 const CONTENT_TYPE_JSON string = "application/json"
 const CONTENT_TYPE_MULTIPART_FORM_DATA string = "multipart/form-data;"
-
 const LOCALHOST string = "http://localhost"
 const TEST_STR string = "Testing!"
+const PRODUCTION string = "production"

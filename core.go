@@ -13,6 +13,7 @@ import (
 
 	"github.com/gocondor/core/cache"
 	"github.com/gocondor/core/database"
+	"github.com/gocondor/core/env"
 	"github.com/gocondor/core/logger"
 	"github.com/julienschmidt/httprouter"
 	"golang.org/x/net/html"
@@ -142,7 +143,6 @@ type notFoundHandler struct{}
 type methodNotAllowed struct{}
 
 func (n notFoundHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	// TODO handle debug mode flag
 	w.WriteHeader(http.StatusNotFound)
 	res := "{\"message\": \"Not Found\"}"
 	loggr.Error("Not Found")
@@ -152,7 +152,6 @@ func (n notFoundHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (n methodNotAllowed) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	// TODO handle debug mode flag
 	w.WriteHeader(http.StatusMethodNotAllowed)
 	res := "{\"message\": \"Method not allowed\"}"
 	loggr.Error("Method not allowed")
@@ -162,12 +161,16 @@ func (n methodNotAllowed) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 var panicHandler = func(w http.ResponseWriter, r *http.Request, e interface{}) {
-	// TODO handle debug mode flag
-	w.WriteHeader(http.StatusInternalServerError)
-	res := fmt.Sprintf("{\"message\": \"[internal error]: %v\", \"stack trace\": \"%v\"}", e, string(debug.Stack()))
+	debug.PrintStack()
 	loggr.Error(fmt.Sprintf("[internal error]: %v", e))
 	loggr.Error(string(debug.Stack()))
-	debug.PrintStack()
+	var res string
+	if env.GetVarOtherwiseDefault("APP_ENV", "local") == PRODUCTION {
+		res = "{\"message\": \"internal error\"}"
+	} else {
+		res = fmt.Sprintf("{\"message\": \"[internal error]: %v\", \"stack trace\": \"%v\"}", e, string(debug.Stack()))
+	}
+	w.WriteHeader(http.StatusInternalServerError)
 	w.Header().Add(CONTENT_TYPE, CONTENT_TYPE_JSON)
 	w.Write([]byte(res))
 }

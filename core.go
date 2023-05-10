@@ -11,8 +11,6 @@ import (
 	"runtime/debug"
 	"strconv"
 
-	"github.com/gocondor/core/cache"
-	"github.com/gocondor/core/database"
 	"github.com/gocondor/core/env"
 	"github.com/gocondor/core/logger"
 	"github.com/julienschmidt/httprouter"
@@ -20,26 +18,33 @@ import (
 )
 
 var logsDriver logger.LogsDriver
-
 var loggr *logger.Logger
+var appC AppConfig
+var requestC RequestConfig
 
-// App struct
+type configContainer struct {
+	App     AppConfig
+	Request RequestConfig
+}
+
 type App struct {
-	Features    *Features
 	t           int // for trancking middlewares
 	chain       *chain
 	middlewares *Middlewares
+	Config      *configContainer
 }
 
 var app *App
 
 func New() *App {
 	app = &App{
-		Features:    &Features{},
 		chain:       &chain{},
 		middlewares: NewMiddlewares(),
+		Config: &configContainer{
+			App:     appC,
+			Request: requestC,
+		},
 	}
-
 	return app
 }
 
@@ -53,12 +58,8 @@ func (app *App) SetLogsDriver(d logger.LogsDriver) {
 
 func (app *App) Bootstrap() {
 	NewRouter()
-	if app.Features.Database == true {
-		database.New()
-	}
-	if app.Features.Cache == true {
-		cache.New(app.Features.Cache)
-	}
+	// database.New()
+	// cache.New(app.Features.Cache)
 	loggr = logger.NewLogger(logsDriver)
 }
 
@@ -68,10 +69,6 @@ func (app *App) Run(portNumber string, router *httprouter.Router) {
 	fmt.Printf("Welcome to GoCondor %v \n", html.UnescapeString(strconv.FormatInt(ee, 10)))
 	fmt.Printf("Listening on port %s\nWaiting for requests...\n", portNumber)
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", portNumber), router))
-}
-
-func (app *App) SetEnabledFeatures(features *Features) {
-	app.Features = features
 }
 
 func (app *App) RegisterRoutes(routes []Route, router *httprouter.Router) *httprouter.Router {
@@ -223,4 +220,12 @@ func (app *App) revHandlers(hs []Handler) []Handler {
 		rev = append(rev, hs[(len(hs)-1)-i])
 	}
 	return rev
+}
+
+func (app *App) SetAppConfig(a AppConfig) {
+	appC = a
+}
+
+func (app *App) SetRequestConfig(r RequestConfig) {
+	requestC = r
 }

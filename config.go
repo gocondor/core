@@ -4,16 +4,11 @@
 
 package core
 
-// Features fetatures of the framework
-type Features struct {
-	Database       bool
-	Cache          bool
-	GRPC           bool
-	Sessions       bool
-	Authentication bool
-}
-
 type AppConfig struct {
 	AppENV        string
 	UseDotEnvFile bool
+}
+
+type RequestConfig struct {
+	MaxUploadFileSize int
 }

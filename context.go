@@ -38,7 +38,7 @@ func (c *Context) Next() {
 }
 
 func (c *Context) prepare(ctx *Context) {
-	ctx.Request.HttpRequest.ParseMultipartForm(20000000)
+	ctx.Request.HttpRequest.ParseMultipartForm(int64(app.Config.Request.MaxUploadFileSize))
 }
 
 func (c *Context) LogInfo(msg interface{}) {

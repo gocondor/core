@@ -21,7 +21,7 @@ import (
 )
 
 func TestNew(t *testing.T) {
-	app := New()
+	app := createNewApp(t)
 	if fmt.Sprintf("%T", app) != "*core.App" {
 		t.Errorf("failed testing new core")
 	}
@@ -41,7 +41,7 @@ func TestSetEnv(t *testing.T) {
 }
 
 func TestMakeHTTPHandlerFunc(t *testing.T) {
-	app := New()
+	app := createNewApp(t)
 	tmpFile := filepath.Join(t.TempDir(), uuid.NewString())
 	app.SetLogsDriver(&logger.LogFileDriver{
 		FilePath: filepath.Join(t.TempDir(), uuid.NewString()),
@@ -67,9 +67,9 @@ func TestMakeHTTPHandlerFunc(t *testing.T) {
 }
 
 func TestMethodNotAllowedHandler(t *testing.T) {
-	a := New()
-	a.SetLogsDriver(&logger.LogNullDriver{})
-	a.Bootstrap()
+	app := createNewApp(t)
+	app.SetLogsDriver(&logger.LogNullDriver{})
+	app.Bootstrap()
 	m := &methodNotAllowed{}
 	r := httptest.NewRequest(GET, LOCALHOST, nil)
 	w := httptest.NewRecorder()
@@ -93,7 +93,7 @@ func TestNotFoundHandler(t *testing.T) {
 }
 
 func TestUseMiddleware(t *testing.T) {
-	app := New()
+	app := createNewApp(t)
 	UseMiddleware(func(c *Context) { c.LogInfo("Testing!") })
 	if len(app.middlewares.GetMiddlewares()) != 1 {
 		t.Errorf("failed testing use middleware")
@@ -113,7 +113,7 @@ func TestChainReset(t *testing.T) {
 }
 
 func TestNext(t *testing.T) {
-	app := New()
+	app := createNewApp(t)
 	app.t = 0
 	tfPath := filepath.Join(t.TempDir(), uuid.NewString())
 	hs := []Handler{
@@ -149,7 +149,7 @@ func TestChainGetByIndex(t *testing.T) {
 }
 
 func TestPrepareChain(t *testing.T) {
-	app := New()
+	app := createNewApp(t)
 	UseMiddleware(func(c *Context) { c.LogInfo("Testing!") })
 	hs := []Handler{
 		func(c *Context) { c.LogInfo("testing1!") },
@@ -201,7 +201,7 @@ func makeCTX(t *testing.T) *Context {
 }
 
 func TestRevHAndlers(t *testing.T) {
-	app := New()
+	app := createNewApp(t)
 	t1 := func(c *Context) { c.LogInfo("Testing1!") }
 	t2 := func(c *Context) { c.LogInfo("Testing2!") }
 
@@ -214,4 +214,14 @@ func TestRevHAndlers(t *testing.T) {
 	if reflect.ValueOf(handlers[1]).Pointer() != reflect.ValueOf(reved[0]).Pointer() {
 		t.Errorf("failed testing reverse handlers")
 	}
+}
+
+func createNewApp(t *testing.T) *App {
+	t.Helper()
+	a := New()
+	a.SetLogsDriver(&logger.LogNullDriver{})
+	a.SetAppConfig(testingAppC)
+	a.SetRequestConfig(testingRequestC)
+
+	return a
 }

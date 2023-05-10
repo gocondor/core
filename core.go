@@ -60,6 +60,7 @@ func (app *App) Bootstrap() {
 	NewRouter()
 	// database.New()
 	// cache.New(app.Features.Cache)
+	newValidator()
 	loggr = logger.NewLogger(logsDriver)
 }
 
@@ -110,7 +111,8 @@ func (app *App) makeHTTPRouterHandlerFunc(hs []Handler) httprouter.Handle {
 				jsonBody:           []byte(""),
 				HttpResponseWriter: w,
 			},
-			logger: loggr,
+			logger:    loggr,
+			Validator: newValidator(),
 		}
 		ctx.prepare(ctx)
 		rhs := app.revHandlers(hs)
@@ -158,8 +160,10 @@ func (n methodNotAllowed) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 var panicHandler = func(w http.ResponseWriter, r *http.Request, e interface{}) {
+	shrtMsg := fmt.Sprintf("[internal error]: %v", e)
+	loggr.Error(shrtMsg)
+	fmt.Println(shrtMsg)
 	debug.PrintStack()
-	loggr.Error(fmt.Sprintf("[internal error]: %v", e))
 	loggr.Error(string(debug.Stack()))
 	var res string
 	if env.GetVarOtherwiseDefault("APP_ENV", "local") == PRODUCTION {

@@ -18,9 +18,10 @@ import (
 )
 
 type Context struct {
-	Request  *Request
-	Response *Response
-	logger   *logger.Logger
+	Request   *Request
+	Response  *Response
+	logger    *logger.Logger
+	Validator *Validator
 }
 
 func (c *Context) DebugAny(variable interface{}) {

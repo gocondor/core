@@ -3,6 +3,7 @@ package core
 import (
 	"encoding/json"
 	"fmt"
+	"strconv"
 	"strings"
 
 	validation "github.com/go-ozzo/ozzo-validation"
@@ -84,6 +85,69 @@ func parseRules(rawRules interface{}) []validation.Rule {
 
 // TODO handle all rules
 func getRule(rule string) validation.Rule {
+	if strings.Contains(rule, "max:") {
+		// max: 44
+		rr := strings.ReplaceAll(rule, "max:", "")
+		m := strings.TrimSpace(rr)
+		n, err := strconv.ParseInt(m, 10, 64)
+		if err != nil {
+			panic("invalid value for validation rule 'max'")
+		}
+		return validation.Max(n)
+	}
+
+	if strings.Contains(rule, "min:") {
+		// min: 33
+		rr := strings.ReplaceAll(rule, "min:", "")
+		m := strings.TrimSpace(rr)
+		n, err := strconv.ParseInt(m, 10, 64)
+		if err != nil {
+			panic("invalid value for validation rule 'min'")
+		}
+		return validation.Min(n)
+	}
+
+	if strings.Contains(rule, "in:") {
+		// in: first, second, third
+		var readyElms []interface{}
+		rr := strings.ReplaceAll(rule, "in:", "")
+		elms := strings.Split(rr, ",")
+		for _, elm := range elms {
+			readyElms = append(readyElms, strings.TrimSpace(elm))
+		}
+		return validation.In(readyElms...)
+	}
+
+	//https://programming.guide/go/format-parse-string-time-date-example.html
+	if strings.Contains(rule, "dateLayout:") {
+		// dateLayout: 02 January 2006
+		rr := rule
+		rr = strings.TrimSpace(strings.Replace(rr, "dateLayout:", "", -1))
+		return validation.Date(rr)
+	}
+
+	if strings.Contains(rule, "length:") {
+		// length: 3, 7
+		rr := rule
+		rr = strings.Replace(rr, "length:", "", -1)
+		lengthRange := strings.Split(rr, ",")
+		if len(lengthRange) < 0 {
+			panic("min value is not set for validation rule 'length'")
+		}
+		min, err := strconv.Atoi(strings.TrimSpace(lengthRange[0]))
+		if err != nil {
+			panic("min value is not set for validation rule 'length'")
+		}
+		if len(lengthRange) < 1 {
+			panic("max value is not set for validation rule 'length'")
+		}
+		max, err := strconv.Atoi(strings.TrimSpace(lengthRange[1]))
+		if err != nil {
+			panic("max value is not set for validation rule 'length'")
+		}
+		return validation.Length(min, max)
+	}
+
 	switch rule {
 	case "required":
 		return validation.Required

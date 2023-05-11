@@ -12,6 +12,7 @@ import (
 	"path"
 	"path/filepath"
 	"reflect"
+	"strconv"
 	"strings"
 
 	"github.com/gocondor/core/logger"
@@ -58,15 +59,15 @@ func (c *Context) LogDebug(msg interface{}) {
 	logger.ResolveLogger().Debug(msg)
 }
 
-func (c *Context) GetPathParam(key string) string {
+func (c *Context) GetPathParam(key string) interface{} {
 	return c.Request.httpPathParams.ByName(key)
 }
 
-func (c *Context) GetRequestParam(key string) string {
+func (c *Context) GetRequestParam(key string) interface{} {
 	return c.Request.HttpRequest.FormValue(key)
 }
 
-func (c *Context) RequestParamExists(key string) bool {
+func (c *Context) RequestParamExists(key string) interface{} {
 	return c.Request.HttpRequest.Form.Has(key)
 }
 
@@ -161,4 +162,88 @@ type UploadedFileInfo struct {
 func (c *Context) GetBaseDirPath() string {
 	wd, _ := os.Getwd()
 	return wd
+}
+
+func (c *Context) CastToString(value interface{}) string {
+	if !basicType(value) {
+		panic("can not cast to string")
+	}
+	return fmt.Sprintf("%s", value)
+}
+
+func (c *Context) CastToInt(value interface{}) int {
+	if !basicType(value) {
+		panic("can not cast to int")
+	}
+	s, ok := value.(string)
+	if !ok {
+		panic("error casting to int")
+	}
+	i, err := strconv.ParseInt(s, 10, 64)
+	if err != nil {
+		panic("error casting to int")
+	}
+	iint := int(i)
+	return iint
+}
+
+func (c *Context) CastToFloat(value interface{}) float64 {
+	if !basicType(value) {
+		panic("can not cast to int")
+	}
+	v := reflect.ValueOf(value)
+	if v.Kind() == reflect.Pointer {
+		v = v.Elem()
+	}
+	var str string
+	var ok bool
+	if v.Kind() == reflect.Float64 {
+		f, ok := value.(float64)
+		if !ok {
+			panic("error casting to float")
+		}
+		return f
+	}
+	if v.Kind() == reflect.Float32 {
+		s := fmt.Sprintf("%v", value)
+		f, err := strconv.ParseFloat(s, 64)
+		if err != nil {
+			panic("error casting to float")
+		}
+		return f
+	}
+	if v.Kind() == reflect.String {
+		str, ok = value.(string)
+		if !ok {
+			panic("error casting to float")
+		}
+	}
+	if v.CanInt() {
+		i, ok := value.(int)
+		if !ok {
+			panic("error casting to float")
+		}
+		str = fmt.Sprintf("%v.0", i)
+	}
+	f, err := strconv.ParseFloat(str, 64)
+	if err != nil {
+		panic("error casting to float")
+	}
+	return f
+}
+
+func basicType(value interface{}) bool {
+	v := reflect.ValueOf(value)
+	if v.Kind() == reflect.Pointer {
+		v = v.Elem()
+	}
+	if !(v.Kind() == reflect.Array ||
+		v.Kind() == reflect.Slice ||
+		v.Kind() == reflect.Map ||
+		v.Kind() == reflect.Struct ||
+		v.Kind() == reflect.Interface ||
+		v.Kind() == reflect.Func) {
+		return true
+	}
+	return false
 }

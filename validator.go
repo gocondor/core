@@ -2,6 +2,7 @@ package core
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -39,7 +40,11 @@ func (v *Validator) Validate(data ValidatorData, rules ValidatorRules) validatio
 		if !ok {
 			continue
 		}
-		err := validation.Validate(val, parseRules(rules[key])...)
+		rls, err := parseRules(rules[key])
+		if err != nil {
+			panic(err.Error())
+		}
+		err = validation.Validate(val, rls...)
 		if err != nil {
 			res[key] = fmt.Sprintf("%v: %v", key, err.Error())
 
@@ -68,150 +73,172 @@ func (vr *validationResult) GetErrorMessagesJson() string {
 	return string(j)
 }
 
-func parseRules(rawRules interface{}) []validation.Rule {
+func parseRules(rawRules interface{}) ([]validation.Rule, error) {
 	var res []validation.Rule
 	rulesStr, ok := rawRules.(string)
 	if !ok {
-		panic("invalid validation rule")
+		return nil, errors.New("invalid validation rule")
 	}
 	rules := strings.Split(rulesStr, "|")
 	for _, rule := range rules {
 		rule = strings.TrimSpace(rule)
-		res = append(res, getRule(rule))
+		r, err := getRule(rule)
+		if err != nil {
+			return nil, err
+		}
+		res = append(res, r)
 	}
-
-	return res
+	return res, nil
 }
 
-// TODO handle all rules
-func getRule(rule string) validation.Rule {
-	if strings.Contains(rule, "max:") {
-		// max: 44
-		rr := strings.ReplaceAll(rule, "max:", "")
-		m := strings.TrimSpace(rr)
-		n, err := strconv.ParseInt(m, 10, 64)
-		if err != nil {
-			panic("invalid value for validation rule 'max'")
-		}
-		return validation.Max(n)
-	}
-
-	if strings.Contains(rule, "min:") {
-		// min: 33
-		rr := strings.ReplaceAll(rule, "min:", "")
-		m := strings.TrimSpace(rr)
-		n, err := strconv.ParseInt(m, 10, 64)
-		if err != nil {
-			panic("invalid value for validation rule 'min'")
-		}
-		return validation.Min(n)
-	}
-
-	if strings.Contains(rule, "in:") {
-		// in: first, second, third
-		var readyElms []interface{}
-		rr := strings.ReplaceAll(rule, "in:", "")
-		elms := strings.Split(rr, ",")
-		for _, elm := range elms {
-			readyElms = append(readyElms, strings.TrimSpace(elm))
-		}
-		return validation.In(readyElms...)
-	}
-
-	//https://programming.guide/go/format-parse-string-time-date-example.html
-	if strings.Contains(rule, "dateLayout:") {
-		// dateLayout: 02 January 2006
-		rr := rule
-		rr = strings.TrimSpace(strings.Replace(rr, "dateLayout:", "", -1))
-		return validation.Date(rr)
-	}
-
-	if strings.Contains(rule, "length:") {
-		// length: 3, 7
-		rr := rule
-		rr = strings.Replace(rr, "length:", "", -1)
-		lengthRange := strings.Split(rr, ",")
-		if len(lengthRange) < 0 {
-			panic("min value is not set for validation rule 'length'")
-		}
-		min, err := strconv.Atoi(strings.TrimSpace(lengthRange[0]))
-		if err != nil {
-			panic("min value is not set for validation rule 'length'")
-		}
-		if len(lengthRange) < 1 {
-			panic("max value is not set for validation rule 'length'")
-		}
-		max, err := strconv.Atoi(strings.TrimSpace(lengthRange[1]))
-		if err != nil {
-			panic("max value is not set for validation rule 'length'")
-		}
-		return validation.Length(min, max)
+func getRule(rule string) (validation.Rule, error) {
+	switch {
+	case strings.Contains(rule, "max:"):
+		return getRuleMax(rule)
+	case strings.Contains(rule, "min:"):
+		return getRuleMin(rule)
+	case strings.Contains(rule, "in:"):
+		return getRuleIn(rule)
+	case strings.Contains(rule, "dateLayout:"):
+		return getRuleDateLayout(rule)
+	case strings.Contains(rule, "length:"):
+		return getRuleLength(rule)
 	}
 
 	switch rule {
 	case "required":
-		return validation.Required
+		return validation.Required, nil
 	case "email":
-		return is.Email
+		return is.Email, nil
 	case "url":
-		return is.URL
+		return is.URL, nil
 	case "alpha":
-		return is.Alpha
+		return is.Alpha, nil
 	case "digit":
-		return is.Digit
+		return is.Digit, nil
 	case "alphaNumeric":
-		return is.Alphanumeric
+		return is.Alphanumeric, nil
 	case "lowerCase":
-		return is.LowerCase
+		return is.LowerCase, nil
 	case "upperCase":
-		return is.UpperCase
+		return is.UpperCase, nil
 	case "int":
-		return is.Int
+		return is.Int, nil
 	case "float":
-		return is.Float
+		return is.Float, nil
 	case "uuid":
-		return is.UUID
+		return is.UUID, nil
 	case "creditCard":
-		return is.CreditCard
+		return is.CreditCard, nil
 	case "json":
-		return is.JSON
+		return is.JSON, nil
 	case "base64":
-		return is.Base64
+		return is.Base64, nil
 	case "countryCode2":
-		return is.CountryCode2
+		return is.CountryCode2, nil
 	case "countryCode3":
-		return is.CountryCode3
+		return is.CountryCode3, nil
 	case "isoCurrencyCode":
-		return is.CurrencyCode
+		return is.CurrencyCode, nil
 	case "mac":
-		return is.MAC
+		return is.MAC, nil
 	case "ip":
-		return is.IP
+		return is.IP, nil
 	case "ipv4":
-		return is.IPv4
+		return is.IPv4, nil
 	case "ipv6":
-		return is.IPv6
+		return is.IPv6, nil
 	case "subdomain":
-		return is.Subdomain
+		return is.Subdomain, nil
 	case "domain":
-		return is.Domain
+		return is.Domain, nil
 	case "dnsName":
-		return is.DNSName
+		return is.DNSName, nil
 	case "host":
-		return is.Host
+		return is.Host, nil
 	case "port":
-		return is.Port
+		return is.Port, nil
 	case "mongoDbId":
-		return is.MongoID
+		return is.MongoID, nil
 	case "latitude":
-		return is.Latitude
+		return is.Latitude, nil
 	case "longitude":
-		return is.Longitude
+		return is.Longitude, nil
 	case "ssn":
-		return is.SSN
+		return is.SSN, nil
 	case "semver":
-		return is.Semver
+		return is.Semver, nil
 	default:
-		panic(fmt.Sprintf("invalid validation rule: %v", rule))
+		err := errors.New(fmt.Sprintf("invalid validation rule: %v", rule))
+		return nil, err
 	}
+}
+
+func getRuleMax(rule string) (validation.Rule, error) {
+	// max: 44
+	rr := strings.ReplaceAll(rule, "max:", "")
+	m := strings.TrimSpace(rr)
+	n, err := strconv.ParseInt(m, 10, 64)
+	if err != nil {
+		err := errors.New("invalid value for validation rule 'max'")
+		return nil, err
+	}
+	return validation.Max(n), err
+}
+
+func getRuleMin(rule string) (validation.Rule, error) {
+	// min: 33
+	rr := strings.ReplaceAll(rule, "min:", "")
+	m := strings.TrimSpace(rr)
+	n, err := strconv.ParseInt(m, 10, 64)
+	if err != nil {
+		err := errors.New("invalid value for validation rule 'min'")
+		return nil, err
+	}
+	return validation.Min(n), nil
+}
+
+func getRuleIn(rule string) (validation.Rule, error) {
+	// in: first, second, third
+	var readyElms []interface{}
+	rr := strings.ReplaceAll(rule, "in:", "")
+	elms := strings.Split(rr, ",")
+	for _, elm := range elms {
+		readyElms = append(readyElms, strings.TrimSpace(elm))
+	}
+	return validation.In(readyElms...), nil
+}
+
+// example date layouts: https://programming.guide/go/format-parse-string-time-date-example.html
+func getRuleDateLayout(rule string) (validation.Rule, error) {
+	// dateLayout: 02 January 2006
+	rr := rule
+	rr = strings.TrimSpace(strings.Replace(rr, "dateLayout:", "", -1))
+	return validation.Date(rr), nil
+}
+
+func getRuleLength(rule string) (validation.Rule, error) {
+	// length: 3, 7
+	rr := rule
+	rr = strings.Replace(rr, "length:", "", -1)
+	lengthRange := strings.Split(rr, ",")
+	if len(lengthRange) < 0 {
+		err := errors.New("min value is not set for validation rule 'length'")
+		return nil, err
+	}
+	min, err := strconv.Atoi(strings.TrimSpace(lengthRange[0]))
+	if err != nil {
+		err := errors.New("min value is not set for validation rule 'length'")
+		return nil, err
+	}
+	if len(lengthRange) < 1 {
+		err := errors.New("max value is not set for validation rule 'length'")
+		return nil, err
+	}
+	max, err := strconv.Atoi(strings.TrimSpace(lengthRange[1]))
+	if err != nil {
+		err := errors.New("max value is not set for validation rule 'length'")
+		return nil, err
+	}
+	return validation.Length(min, max), nil
 }

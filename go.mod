@@ -7,6 +7,7 @@ replace github.com/gocondor/core/env => ./env
 go 1.20
 
 require (
+	github.com/brianvoe/gofakeit/v6 v6.21.0
 	github.com/go-redis/redis/v8 v8.11.5
 	github.com/google/uuid v1.3.0
 	github.com/joho/godotenv v1.5.1

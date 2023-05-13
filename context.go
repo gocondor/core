@@ -23,6 +23,7 @@ type Context struct {
 	Response  *Response
 	logger    *logger.Logger
 	Validator *Validator
+	JWT       *JWT
 }
 
 func (c *Context) DebugAny(variable interface{}) {
@@ -171,6 +172,7 @@ func (c *Context) CastToString(value interface{}) string {
 	return fmt.Sprintf("%s", value)
 }
 
+// TODO cast to all int types
 func (c *Context) CastToInt(value interface{}) int {
 	if !basicType(value) {
 		panic("can not cast to int")

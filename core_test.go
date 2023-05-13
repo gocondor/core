@@ -198,6 +198,7 @@ func makeCTX(t *testing.T) *Context {
 			FilePath: lgsPath,
 		}),
 		Validator: nil,
+		JWT:       nil,
 	}
 }
 

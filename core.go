@@ -113,6 +113,7 @@ func (app *App) makeHTTPRouterHandlerFunc(hs []Handler) httprouter.Handle {
 			},
 			logger:    loggr,
 			Validator: newValidator(),
+			JWT:       newJWT(),
 		}
 		ctx.prepare(ctx)
 		rhs := app.revHandlers(hs)

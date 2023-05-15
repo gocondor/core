@@ -3,17 +3,31 @@ package core
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 )
 
-type JWT struct{}
+type JWT struct {
+	signingKey []byte
+	expiresAt  time.Time
+}
+type JWTOptions struct {
+	SigningKey string
+	Lifetime   int
+}
 
 var j *JWT
 
-func newJWT() *JWT {
-	j = &JWT{}
+func newJWT(opts JWTOptions) *JWT {
+	d := time.Duration(opts.Lifetime)
+	fmt.Println(opts.SigningKey)
+
+	j = &JWT{
+		signingKey: []byte(opts.SigningKey),
+		expiresAt:  time.Now().Add(d * time.Hour),
+	}
 	return j
 }
 func resolveJWT() *JWT {
@@ -25,20 +39,22 @@ type claims struct {
 	jwt.RegisteredClaims
 }
 
-var signingKey = []byte("thesigningstring") // TODO extract to config
-func (j *JWT) GenerateToken(payload map[string]interface{}, expiresAt time.Time) (string, error) {
-	claims, err := mapClaims(payload, expiresAt)
+func (j *JWT) GenerateToken(payload map[string]interface{}) (string, error) {
+	claims, err := mapClaims(payload, j.expiresAt)
 	if err != nil {
 		return "", err
 	}
 	t := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	token, _ := t.SignedString(signingKey)
+	token, err := t.SignedString(j.signingKey)
+	if err != nil {
+		return "", err
+	}
 	return token, nil
 }
 
 func (j *JWT) DecodeToken(token string) (payload map[string]interface{}, err error) {
 	t, err := jwt.ParseWithClaims(token, &claims{}, func(token *jwt.Token) (interface{}, error) {
-		return signingKey, nil
+		return j.signingKey, nil
 	})
 	if err != nil {
 		return nil, err
@@ -59,13 +75,17 @@ func (j *JWT) DecodeToken(token string) (payload map[string]interface{}, err err
 	return payload, nil
 }
 
-func (j *JWT) isValid(token string) bool {
-
-	return false
-}
-
-func (j *JWT) hasExpired(token string) bool {
-	return false
+func (j *JWT) HasExpired(token string) error {
+	_, err := jwt.ParseWithClaims(token, &claims{}, func(token *jwt.Token) (interface{}, error) {
+		return j.signingKey, nil
+	})
+	if err != nil {
+		if errors.Is(err, jwt.ErrTokenExpired) {
+			return errors.New("token has expired")
+		}
+		return err
+	}
+	return nil
 }
 
 func mapClaims(data map[string]interface{}, expiresAt time.Time) (jwt.Claims, error) {

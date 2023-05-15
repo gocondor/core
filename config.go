@@ -12,3 +12,8 @@ type AppConfig struct {
 type RequestConfig struct {
 	MaxUploadFileSize int
 }
+
+type JWTConfig struct {
+	SecretKey string
+	Lifetime  int
+}

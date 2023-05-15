@@ -21,6 +21,7 @@ var logsDriver logger.LogsDriver
 var loggr *logger.Logger
 var appC AppConfig
 var requestC RequestConfig
+var jwtC JWTConfig
 
 type configContainer struct {
 	App     AppConfig
@@ -94,7 +95,6 @@ func (app *App) RegisterRoutes(routes []Route, router *httprouter.Router) *httpr
 			router.HEAD(route.Path, app.makeHTTPRouterHandlerFunc(route.Handlers))
 		}
 	}
-
 	return router
 }
 
@@ -113,7 +113,10 @@ func (app *App) makeHTTPRouterHandlerFunc(hs []Handler) httprouter.Handle {
 			},
 			logger:    loggr,
 			Validator: newValidator(),
-			JWT:       newJWT(),
+			JWT: newJWT(JWTOptions{
+				SigningKey: jwtC.SecretKey,
+				Lifetime:   jwtC.Lifetime,
+			}),
 		}
 		ctx.prepare(ctx)
 		rhs := app.revHandlers(hs)
@@ -233,4 +236,8 @@ func (app *App) SetAppConfig(a AppConfig) {
 
 func (app *App) SetRequestConfig(r RequestConfig) {
 	requestC = r
+}
+
+func (app *App) SetJWTConfig(j JWTConfig) {
+	jwtC = j
 }

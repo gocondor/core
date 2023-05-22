@@ -123,7 +123,6 @@ func (app *App) makeHTTPRouterHandlerFunc(hs []Handler) httprouter.Handle {
 		app.prepareChain(rhs)
 		app.t = 0
 		app.chain.execute(ctx)
-
 		for _, header := range ctx.Response.getHeaders() {
 			w.Header().Add(header.key, header.val)
 		}

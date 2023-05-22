@@ -3,7 +3,6 @@ package core
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -22,8 +21,6 @@ var j *JWT
 
 func newJWT(opts JWTOptions) *JWT {
 	d := time.Duration(opts.Lifetime)
-	fmt.Println(opts.SigningKey)
-
 	j = &JWT{
 		signingKey: []byte(opts.SigningKey),
 		expiresAt:  time.Now().Add(d * time.Hour),

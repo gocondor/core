@@ -129,7 +129,6 @@ func (c *Context) MoveFile(sourceFilePath string, destFolderPath string, newFile
 	}
 	defer srcFile.Close()
 	destFilePath := filepath.Join(destFolderPath, newFileName)
-	fmt.Println(srcFileInfo.Name())
 	destFile, err := os.OpenFile(destFilePath, os.O_CREATE|os.O_RDWR|os.O_APPEND, 744)
 	if err != nil {
 		return err
@@ -172,26 +171,50 @@ func (c *Context) CastToString(value interface{}) string {
 	return fmt.Sprintf("%s", value)
 }
 
-// TODO cast to all int types
 func (c *Context) CastToInt(value interface{}) int {
+	var i int
 	if !basicType(value) {
 		panic("can not cast to int")
 	}
+	i, ok := value.(int)
+	if ok {
+		return i
+	}
+	_i, ok := value.(int32)
+	if ok {
+		i := int(_i)
+		return i
+	}
+	_ii, ok := value.(int64)
+	if ok {
+		i := int(_ii)
+		return i
+	}
+	f, ok := value.(float32)
+	if ok {
+		i := int(f)
+		return i
+	}
+	ff, ok := value.(float64)
+	if ok {
+		i := int(ff)
+		return i
+	}
 	s, ok := value.(string)
-	if !ok {
-		panic("error casting to int")
+	if ok {
+		fff, err := strconv.ParseFloat(s, 64)
+		if err != nil {
+			panic("error casting to int")
+		}
+		i = int(fff)
+		return i
 	}
-	i, err := strconv.ParseInt(s, 10, 64)
-	if err != nil {
-		panic("error casting to int")
-	}
-	iint := int(i)
-	return iint
+	panic("error casting to int")
 }
 
 func (c *Context) CastToFloat(value interface{}) float64 {
 	if !basicType(value) {
-		panic("can not cast to int")
+		panic("can not cast to float")
 	}
 	v := reflect.ValueOf(value)
 	if v.Kind() == reflect.Pointer {

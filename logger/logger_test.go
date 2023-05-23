@@ -10,6 +10,39 @@ import (
 	"github.com/google/uuid"
 )
 
+func TestNewLogger(t *testing.T) {
+	fp := filepath.Join(t.TempDir(), uuid.NewString())
+	f, err := os.Create(fp)
+	if err != nil {
+		t.Errorf("failed test new logger")
+	}
+	f.Close()
+	l := NewLogger(&LogNullDriver{})
+	l.Info("testing")
+	fdrv := &LogFileDriver{
+		fp,
+	}
+	trgt := fdrv.GetTarget()
+	ts, ok := trgt.(string)
+	if !ok {
+		t.Errorf("failed test new logger")
+	}
+	if ts != fp {
+		t.Errorf("failed test new logger")
+	}
+	l = NewLogger(fdrv)
+	l.Error("test-err")
+	f, err = os.Open(fp)
+	if err != nil {
+		t.Errorf("failed test new logger")
+	}
+	defer f.Close()
+	b, err := io.ReadAll(f)
+	if !strings.Contains(string(b), "test-err") {
+		t.Errorf("failed test new logger")
+	}
+}
+
 func TestInfo(t *testing.T) {
 	path := filepath.Join(t.TempDir(), uuid.NewString())
 	l := NewLogger(&LogFileDriver{

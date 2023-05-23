@@ -464,6 +464,18 @@ func TestCastToFloat(t *testing.T) {
 	}
 }
 
+func TestGetBaseDirPath(t *testing.T) {
+	c := makeCTX(t)
+	p := c.GetBaseDirPath()
+	pwd, err := os.Getwd()
+	if err != nil {
+		t.Errorf("failed test get base dir path")
+	}
+	if p != pwd {
+		t.Errorf("failed test get base dir path")
+	}
+}
+
 func makeCTXLogTestCTX(t *testing.T, w http.ResponseWriter, r *http.Request, tmpFilePath string) *Context {
 	t.Helper()
 	return &Context{

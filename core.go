@@ -9,12 +9,10 @@ import (
 	"log"
 	"net/http"
 	"runtime/debug"
-	"strconv"
 
 	"github.com/gocondor/core/env"
 	"github.com/gocondor/core/logger"
 	"github.com/julienschmidt/httprouter"
-	"golang.org/x/net/html"
 )
 
 var logsDriver logger.LogsDriver
@@ -67,8 +65,7 @@ func (app *App) Bootstrap() {
 
 func (app *App) Run(portNumber string, router *httprouter.Router) {
 	router = app.RegisterRoutes(ResolveRouter().GetRoutes(), router)
-	ee, _ := strconv.ParseInt("0x1F985", 0, 64)
-	fmt.Printf("Welcome to GoCondor %v \n", html.UnescapeString(strconv.FormatInt(ee, 10)))
+	fmt.Printf("Welcome to GoCondor\n")
 	fmt.Printf("Listening on port %s\nWaiting for requests...\n", portNumber)
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", portNumber), router))
 }
@@ -163,16 +160,15 @@ func (n methodNotAllowed) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 var panicHandler = func(w http.ResponseWriter, r *http.Request, e interface{}) {
-	shrtMsg := fmt.Sprintf("[internal error]: %v", e)
+	shrtMsg := fmt.Sprintf("%v", e)
 	loggr.Error(shrtMsg)
 	fmt.Println(shrtMsg)
-	debug.PrintStack()
 	loggr.Error(string(debug.Stack()))
 	var res string
 	if env.GetVarOtherwiseDefault("APP_ENV", "local") == PRODUCTION {
 		res = "{\"message\": \"internal error\"}"
 	} else {
-		res = fmt.Sprintf("{\"message\": \"[internal error]: %v\", \"stack trace\": \"%v\"}", e, string(debug.Stack()))
+		res = fmt.Sprintf("{\"message\": \"%v\", \"stack trace\": \"%v\"}", e, string(debug.Stack()))
 	}
 	w.WriteHeader(http.StatusInternalServerError)
 	w.Header().Add(CONTENT_TYPE, CONTENT_TYPE_JSON)

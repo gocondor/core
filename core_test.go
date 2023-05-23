@@ -6,11 +6,13 @@ package core
 
 import (
 	"fmt"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"path/filepath"
 	"reflect"
+	"strings"
 	"testing"
 
 	"github.com/gocondor/core/env"
@@ -215,6 +217,252 @@ func TestRevHAndlers(t *testing.T) {
 
 	if reflect.ValueOf(handlers[1]).Pointer() != reflect.ValueOf(reved[0]).Pointer() {
 		t.Errorf("failed testing reverse handlers")
+	}
+}
+
+func TestRegisterGetRoute(t *testing.T) {
+	app := New()
+	hr := httprouter.New()
+	gcr := NewRouter()
+	gcr.Get("/", func(c *Context) {
+		fmt.Fprintln(c.Response.HttpResponseWriter, c.GetRequestParam("param"))
+	})
+	gcr.Post("/", func(c *Context) {
+		fmt.Fprintln(c.Response.HttpResponseWriter, c.GetRequestParam("param"))
+	})
+	gcr.Delete("/", func(c *Context) {
+		fmt.Fprintln(c.Response.HttpResponseWriter, c.GetRequestParam("param"))
+	})
+	gcr.Patch("/", func(c *Context) {
+		fmt.Fprintln(c.Response.HttpResponseWriter, c.GetRequestParam("param"))
+	})
+	gcr.Put("/", func(c *Context) {
+		fmt.Fprintln(c.Response.HttpResponseWriter, c.GetRequestParam("param"))
+	})
+	gcr.Options("/", func(c *Context) {
+		fmt.Fprintln(c.Response.HttpResponseWriter, c.GetRequestParam("param"))
+	})
+	gcr.Head("/", func(c *Context) {
+		fmt.Fprintln(c.Response.HttpResponseWriter, c.GetRequestParam("param"))
+	})
+	hr = app.RegisterRoutes(gcr.GetRoutes(), hr)
+	s := httptest.NewServer(hr)
+	defer s.Close()
+	clt := &http.Client{}
+	req, err := http.NewRequest("GET", s.URL+"?param=valget", nil)
+	if err != nil {
+		t.Errorf("failed test register routes")
+	}
+	rsp, err := clt.Do(req)
+	if err != nil {
+		t.Errorf("failed test register routes")
+	}
+	b, err := io.ReadAll(rsp.Body)
+	if err != nil {
+		t.Errorf("failed test register routes")
+	}
+	if strings.TrimSpace(string(b)) != "valget" {
+		t.Errorf("failed test register routes")
+	}
+	rsp.Body.Close()
+}
+
+func TestRegisterPostRoute(t *testing.T) {
+	app := New()
+	hr := httprouter.New()
+	gcr := NewRouter()
+	gcr.Post("/", func(c *Context) {
+		fmt.Fprintln(c.Response.HttpResponseWriter, c.GetRequestParam("param"))
+	})
+	hr = app.RegisterRoutes(gcr.GetRoutes(), hr)
+	s := httptest.NewServer(hr)
+	defer s.Close()
+	clt := &http.Client{}
+	req, err := http.NewRequest("POST", s.URL+"?param=valpost", nil)
+	if err != nil {
+		t.Errorf("failed test register post route")
+	}
+	rsp, err := clt.Do(req)
+	if err != nil {
+		t.Errorf("failed test register post route")
+	}
+	b, err := io.ReadAll(rsp.Body)
+	if err != nil {
+		t.Errorf("failed test register post route")
+	}
+	if strings.TrimSpace(string(b)) != "valpost" {
+		t.Errorf("failed test register post route")
+	}
+	rsp.Body.Close()
+}
+
+func TestRegisterDeleteRoute(t *testing.T) {
+	app := New()
+	hr := httprouter.New()
+	gcr := NewRouter()
+	gcr.Delete("/", func(c *Context) {
+		fmt.Fprintln(c.Response.HttpResponseWriter, c.GetRequestParam("param"))
+	})
+	hr = app.RegisterRoutes(gcr.GetRoutes(), hr)
+	s := httptest.NewServer(hr)
+	defer s.Close()
+	clt := &http.Client{}
+	req, err := http.NewRequest("DELETE", s.URL+"?param=valdelete", nil)
+	if err != nil {
+		t.Errorf("failed test register delete route")
+	}
+	rsp, err := clt.Do(req)
+	if err != nil {
+		t.Errorf("failed test register delete route")
+	}
+	b, err := io.ReadAll(rsp.Body)
+	if err != nil {
+		t.Errorf("failed test register delete route")
+	}
+	if strings.TrimSpace(string(b)) != "valdelete" {
+		t.Errorf("failed test register delete route")
+	}
+	rsp.Body.Close()
+}
+
+func TestRegisterPatchRoute(t *testing.T) {
+	app := New()
+	hr := httprouter.New()
+	gcr := NewRouter()
+	gcr.Patch("/", func(c *Context) {
+		fmt.Fprintln(c.Response.HttpResponseWriter, c.GetRequestParam("param"))
+	})
+	hr = app.RegisterRoutes(gcr.GetRoutes(), hr)
+	s := httptest.NewServer(hr)
+	defer s.Close()
+	clt := &http.Client{}
+	req, err := http.NewRequest("PATCH", s.URL+"?param=valpatch", nil)
+	if err != nil {
+		t.Errorf("failed test register patch route")
+	}
+	rsp, err := clt.Do(req)
+	if err != nil {
+		t.Errorf("failed test register patch route")
+	}
+	b, err := io.ReadAll(rsp.Body)
+	if err != nil {
+		t.Errorf("failed test register patch route")
+	}
+	if strings.TrimSpace(string(b)) != "valpatch" {
+		t.Errorf("failed test register patch route")
+	}
+	rsp.Body.Close()
+}
+
+func TestRegisterPutRoute(t *testing.T) {
+	app := New()
+	hr := httprouter.New()
+	gcr := NewRouter()
+	gcr.Put("/", func(c *Context) {
+		fmt.Fprintln(c.Response.HttpResponseWriter, c.GetRequestParam("param"))
+	})
+	hr = app.RegisterRoutes(gcr.GetRoutes(), hr)
+	s := httptest.NewServer(hr)
+	defer s.Close()
+	clt := &http.Client{}
+	req, err := http.NewRequest("PUT", s.URL+"?param=valput", nil)
+	if err != nil {
+		t.Errorf("failed test register put route")
+	}
+	rsp, err := clt.Do(req)
+	if err != nil {
+		t.Errorf("failed test register put route")
+	}
+	b, err := io.ReadAll(rsp.Body)
+	if err != nil {
+		t.Errorf("failed test register put route")
+	}
+	if strings.TrimSpace(string(b)) != "valput" {
+		t.Errorf("failed test register put route")
+	}
+	rsp.Body.Close()
+}
+
+func TestRegisterOptionsRoute(t *testing.T) {
+	app := New()
+	hr := httprouter.New()
+	gcr := NewRouter()
+	gcr.Options("/", func(c *Context) {
+		fmt.Fprintln(c.Response.HttpResponseWriter, c.GetRequestParam("param"))
+	})
+	hr = app.RegisterRoutes(gcr.GetRoutes(), hr)
+	s := httptest.NewServer(hr)
+	defer s.Close()
+	clt := &http.Client{}
+	req, err := http.NewRequest("OPTIONS", s.URL+"?param=valoptions", nil)
+	if err != nil {
+		t.Errorf("failed test register options route")
+	}
+	rsp, err := clt.Do(req)
+	if err != nil {
+		t.Errorf("failed test register options route")
+	}
+	b, err := io.ReadAll(rsp.Body)
+	if err != nil {
+		t.Errorf("failed test register options route")
+	}
+	if strings.TrimSpace(string(b)) != "valoptions" {
+		t.Errorf("failed test register options route")
+	}
+	rsp.Body.Close()
+}
+
+func TestRegisterHeadRoute(t *testing.T) {
+	app := New()
+	hr := httprouter.New()
+	gcr := NewRouter()
+	tfp := filepath.Join(t.TempDir(), uuid.NewString())
+	gcr.Head("/", func(c *Context) {
+		param := c.GetRequestParam("param")
+		p, _ := param.(string)
+		f, err := os.OpenFile(p, os.O_CREATE|os.O_RDWR, 777)
+		if err != nil {
+			fmt.Println(err.Error())
+		}
+		defer f.Close()
+		f.WriteString("fromhead")
+	})
+	hr = app.RegisterRoutes(gcr.GetRoutes(), hr)
+	s := httptest.NewServer(hr)
+	defer s.Close()
+	clt := &http.Client{}
+	req, err := http.NewRequest("HEAD", s.URL+"?param="+tfp, nil)
+	if err != nil {
+		t.Errorf("failed test register head route")
+	}
+	rsp, err := clt.Do(req)
+	if err != nil {
+		t.Errorf("failed test register head route")
+	}
+	f, err := os.Open(tfp)
+	if err != nil {
+		t.Errorf("failed test register head route: %v", err.Error())
+	}
+	b, err := io.ReadAll(f)
+	if err != nil {
+		t.Errorf("failed test register head route: %v", err.Error())
+	}
+	f.Close()
+	if strings.TrimSpace(string(b)) != "fromhead" {
+		t.Errorf("failed test register head route")
+	}
+	rsp.Body.Close()
+}
+
+func TestPanicHandler(t *testing.T) {
+	loggr = logger.NewLogger(&logger.LogNullDriver{})
+	r := httptest.NewRequest(GET, LOCALHOST, nil)
+	w := httptest.NewRecorder()
+	panicHandler(w, r, "")
+	rsp := w.Result()
+	b, _ := io.ReadAll(rsp.Body)
+	if !strings.Contains(string(b), "stack trace") {
+		t.Errorf("failed test panic handler")
 	}
 }
 

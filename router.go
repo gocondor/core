@@ -29,7 +29,7 @@ func ResolveRouter() *Router {
 
 func (r *Router) Get(path string, handlers ...Handler) *Router {
 	r.Routes = append(r.Routes, Route{
-		Method:   "get",
+		Method:   GET,
 		Path:     path,
 		Handlers: handlers,
 	})
@@ -38,7 +38,7 @@ func (r *Router) Get(path string, handlers ...Handler) *Router {
 
 func (r *Router) Post(path string, handlers ...Handler) *Router {
 	r.Routes = append(r.Routes, Route{
-		Method:   "post",
+		Method:   POST,
 		Path:     path,
 		Handlers: handlers,
 	})
@@ -47,7 +47,16 @@ func (r *Router) Post(path string, handlers ...Handler) *Router {
 
 func (r *Router) Delete(path string, handlers ...Handler) *Router {
 	r.Routes = append(r.Routes, Route{
-		Method:   "delete",
+		Method:   DELETE,
+		Path:     path,
+		Handlers: handlers,
+	})
+	return r
+}
+
+func (r *Router) Patch(path string, handlers ...Handler) *Router {
+	r.Routes = append(r.Routes, Route{
+		Method:   PATCH,
 		Path:     path,
 		Handlers: handlers,
 	})
@@ -56,7 +65,7 @@ func (r *Router) Delete(path string, handlers ...Handler) *Router {
 
 func (r *Router) Put(path string, handlers ...Handler) *Router {
 	r.Routes = append(r.Routes, Route{
-		Method:   "put",
+		Method:   PUT,
 		Path:     path,
 		Handlers: handlers,
 	})
@@ -65,7 +74,7 @@ func (r *Router) Put(path string, handlers ...Handler) *Router {
 
 func (r *Router) Options(path string, handlers ...Handler) *Router {
 	r.Routes = append(r.Routes, Route{
-		Method:   "options",
+		Method:   OPTIONS,
 		Path:     path,
 		Handlers: handlers,
 	})
@@ -74,7 +83,7 @@ func (r *Router) Options(path string, handlers ...Handler) *Router {
 
 func (r *Router) Head(path string, handlers ...Handler) *Router {
 	r.Routes = append(r.Routes, Route{
-		Method:   "head",
+		Method:   HEAD,
 		Path:     path,
 		Handlers: handlers,
 	})

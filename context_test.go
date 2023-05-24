@@ -38,6 +38,9 @@ func TestDebugAny(t *testing.T) {
 	}
 	h := func(c *Context) func(w http.ResponseWriter, r *http.Request) {
 		return func(w http.ResponseWriter, r *http.Request) {
+			var msg interface{}
+			msg = "test-debug-pointer"
+			c.DebugAny(&msg)
 			c.DebugAny("test-debug-msg")
 		}
 	}(c)
@@ -47,6 +50,9 @@ func TestDebugAny(t *testing.T) {
 		t.Errorf("failed testing debug any")
 	}
 	if !strings.Contains(string(b), "test-debug-msg") {
+		t.Errorf("failed testing debug any")
+	}
+	if !strings.Contains(string(b), "test-debug-pointer") {
 		t.Errorf("failed testing debug any")
 	}
 }
@@ -429,16 +435,23 @@ func TestCastToFloat(t *testing.T) {
 	if !(f == 4 && fmt.Sprintf("%T", f) == "float64") {
 		t.Errorf("failed test cast to float")
 	}
-	ff := c.CastToFloat(4.434)
-	if !(ff == 4.434 && fmt.Sprintf("%T", ff) == "float64") {
+	var varf32 float32 = 4.434
+	ff32 := c.CastToFloat(varf32)
+	if !(ff32 == 4.434 && fmt.Sprintf("%T", ff32) == "float64") {
 		t.Errorf("failed test cast to float")
 	}
+	var varf64 float64 = 4.434
+	ff64 := c.CastToFloat(varf64)
+	if !(ff64 == 4.434 && fmt.Sprintf("%T", ff64) == "float64") {
+		t.Errorf("failed test cast to float")
+	}
+
 	fff := c.CastToFloat("4")
 	if !(fff == 4 && fmt.Sprintf("%T", fff) == "float64") {
 		t.Errorf("failed test cast to float")
 	}
 	ffff := c.CastToFloat("4.434")
-	if !(ff == 4.434 && fmt.Sprintf("%T", ffff) == "float64") {
+	if !(ffff == 4.434 && fmt.Sprintf("%T", ffff) == "float64") {
 		t.Errorf("failed test cast to float")
 	}
 	var iInterface interface{}
@@ -448,8 +461,8 @@ func TestCastToFloat(t *testing.T) {
 		t.Errorf("failed test cast to float")
 	}
 	iInterface = 4.434
-	ff = c.CastToFloat(iInterface)
-	if !(ff == 4.434 && fmt.Sprintf("%T", ff) == "float64") {
+	iff := c.CastToFloat(iInterface)
+	if !(iff == 4.434 && fmt.Sprintf("%T", iff) == "float64") {
 		t.Errorf("failed test cast to float")
 	}
 	iInterface = "4"
@@ -459,7 +472,7 @@ func TestCastToFloat(t *testing.T) {
 	}
 	iInterface = "4.434"
 	ffff = c.CastToFloat(iInterface)
-	if !(ff == 4.434 && fmt.Sprintf("%T", ffff) == "float64") {
+	if !(ffff == 4.434 && fmt.Sprintf("%T", ffff) == "float64") {
 		t.Errorf("failed test cast to float")
 	}
 }

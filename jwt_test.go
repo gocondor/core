@@ -43,7 +43,12 @@ func TestGenerateToken(t *testing.T) {
 }
 
 func TestDecodeToken(t *testing.T) {
+	expiredToken := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJKIjoiZXlKMFpYTjBTMlY1SWpvaWRHVnpkRlpoYkNKOSIsImV4cCI6MTY4NDkyMzQwOX0.v2aM9OTDJ48L4KnGjfLH3JAFQw4Gkgj5z7cA7txPNag"
 	j := initiateJWTHelper(t)
+	_, err := j.DecodeToken(expiredToken)
+	if err == nil {
+		t.Errorf("failed test decode token")
+	}
 	token, err := j.GenerateToken(map[string]interface{}{
 		"testKey": "testVal",
 	})
@@ -65,7 +70,12 @@ func TestDecodeToken(t *testing.T) {
 }
 
 func TestHasExpired(t *testing.T) {
+	expiredToken := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJKIjoiZXlKMFpYTjBTMlY1SWpvaWRHVnpkRlpoYkNKOSIsImV4cCI6MTY4NDkyMzQwOX0.v2aM9OTDJ48L4KnGjfLH3JAFQw4Gkgj5z7cA7txPNag"
 	j := initiateJWTHelper(t)
+	err := j.HasExpired(expiredToken)
+	if err == nil {
+		t.Errorf("failed test decode token")
+	}
 	token, err := j.GenerateToken(map[string]interface{}{
 		"testKey": "testVal",
 	})

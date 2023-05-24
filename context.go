@@ -26,12 +26,15 @@ type Context struct {
 	JWT       *JWT
 }
 
+// TODO enhance
 func (c *Context) DebugAny(variable interface{}) {
+	var formatted string
 	m := reflect.ValueOf(variable)
 	if m.Kind() == reflect.Pointer {
-		m = m.Elem()
+		formatted = fmt.Sprintf("\n\nType: [pointer] %v (%v) \nMemory Address: %v \nValue: %v\n\n", m.Type(), m.Elem().Kind(), m, m.Elem())
+	} else {
+		formatted = fmt.Sprintf("\n\nType: %v (%v) \nValue: %v\n\n", m.Type(), m.Kind(), variable)
 	}
-	formatted := fmt.Sprintf("Type: %T (%v) | value: %v", variable, m.Kind(), variable)
 	fmt.Println(formatted)
 	c.Response.HttpResponseWriter.Write([]byte(formatted))
 }

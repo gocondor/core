@@ -5,6 +5,7 @@
 package core
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -52,6 +53,8 @@ func TestMakeHTTPHandlerFunc(t *testing.T) {
 		func(c *Context) {
 			f, _ := os.Create(tmpFile)
 			f.WriteString("DFT2V56H")
+			c.Response.SetHeader("header-key", "header-val")
+			c.Response.WriteText("DFT2V56H")
 		},
 	}
 	h := app.makeHTTPRouterHandlerFunc(hs)
@@ -65,6 +68,42 @@ func TestMakeHTTPHandlerFunc(t *testing.T) {
 	s, _ := os.ReadFile(tmpFile)
 	if string(s) != "DFT2V56H" {
 		t.Errorf("failed testing make http handler func")
+	}
+}
+
+func TestMakeHTTPHandlerFuncVerifyJson(t *testing.T) {
+	app := createNewApp(t)
+	tmpFile := filepath.Join(t.TempDir(), uuid.NewString())
+	app.SetLogsDriver(&logger.LogFileDriver{
+		FilePath: filepath.Join(t.TempDir(), uuid.NewString()),
+	})
+	hs := []Handler{
+		func(c *Context) {
+			f, _ := os.Create(tmpFile)
+			f.WriteString("DFT2V56H")
+			c.Response.SetHeader("header-key", "header-val")
+			c.Response.WriteJson([]byte("{\"testKey\": \"testVal\"}"))
+		},
+	}
+	h := app.makeHTTPRouterHandlerFunc(hs)
+	r := httptest.NewRequest(GET, LOCALHOST, nil)
+	w := httptest.NewRecorder()
+	h(w, r, []httprouter.Param{{Key: "tkey", Value: "tvalue"}})
+	rsp := w.Result()
+	if rsp.StatusCode != http.StatusOK {
+		t.Errorf("failed testing make http handler func with json verify")
+	}
+	b, err := io.ReadAll(rsp.Body)
+	if err != nil {
+		t.Errorf("failed testing make http handler func with json verify")
+	}
+	var j map[string]interface{}
+	err = json.Unmarshal(b, &j)
+	if err != nil {
+		t.Errorf("failed testing make http handler func with json verify: %v", err)
+	}
+	if j["testKey"] != "testVal" {
+		t.Errorf("failed testing make http handler func with json verify")
 	}
 }
 

@@ -1,8 +1,10 @@
 package core
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/brianvoe/gofakeit/v6"
@@ -221,6 +223,17 @@ func TestValidatorValidate(t *testing.T) {
 		},
 	)
 	if !v.Failed() {
+		t.Errorf("erro testing validator validate")
+	}
+	msgsMap := v.GetErrorMessagesMap()
+	if !strings.Contains(msgsMap["name"], "cannot be blank") {
+		t.Errorf("erro testing validator validate")
+	}
+	msgsJson := v.GetErrorMessagesJson()
+	var masgsMapOfJ map[string]interface{}
+	json.Unmarshal([]byte(msgsJson), &masgsMapOfJ)
+	sval, _ := masgsMapOfJ["name"].(string)
+	if !strings.Contains(sval, "cannot be blank") {
 		t.Errorf("erro testing validator validate")
 	}
 }

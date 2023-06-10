@@ -4,9 +4,22 @@
 
 package core
 
-type AppConfig struct {
-	AppENV        string
+type EnvFile struct {
 	UseDotEnvFile bool
+}
+
+type AppConfig struct {
+	AppName             string
+	AppEnv              string
+	AppHttpHost         string
+	AppHttpPort         string
+	UseHttps            bool //-------//
+	UseLetsEncrypt      bool
+	LetsEncryptEmail    string
+	HttpsHosts          string
+	RedirectHttpToHttps string
+	CertFilePath        string
+	KeyFilePath         string
 }
 
 type RequestConfig struct {

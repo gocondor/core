@@ -8,11 +8,14 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
+	"path/filepath"
 	"runtime/debug"
 
 	"github.com/gocondor/core/env"
 	"github.com/gocondor/core/logger"
 	"github.com/julienschmidt/httprouter"
+	"golang.org/x/crypto/acme/autocert"
 )
 
 var logsDriver logger.LogsDriver
@@ -66,7 +69,31 @@ func (app *App) Bootstrap() {
 func (app *App) Run(portNumber string, router *httprouter.Router) {
 	router = app.RegisterRoutes(ResolveRouter().GetRoutes(), router)
 	fmt.Printf("Welcome to GoCondor\n")
-	fmt.Printf("Listening on port %s\nWaiting for requests...\n", portNumber)
+	if appC.UseHttps {
+		fmt.Printf("Listening on https \nWaiting for requests...\n")
+	} else {
+		fmt.Printf("Listening on port %s\nWaiting for requests...\n", portNumber)
+	}
+	if appC.UseHttps && appC.UseLetsEncrypt {
+		m := &autocert.Manager{
+			Cache:      autocert.DirCache("letsencrypt-certs-dir"),
+			Prompt:     autocert.AcceptTOS,
+			Email:      appC.LetsEncryptEmail,
+			HostPolicy: autocert.HostWhitelist(appC.HttpsHosts),
+		}
+		log.Fatal(http.Serve(m.Listener(), router))
+		return
+	}
+	if appC.UseHttps && !appC.UseLetsEncrypt {
+		wd, err := os.Getwd()
+		if err != nil {
+			panic("can not get the current working dir")
+		}
+		certFilePath := filepath.Join(wd, appC.CertFilePath)
+		KeyFilePath := filepath.Join(wd, appC.KeyFilePath)
+		log.Fatal(http.ListenAndServeTLS(":443", certFilePath, KeyFilePath, router))
+		return
+	}
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", portNumber), router))
 }
 

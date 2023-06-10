@@ -3,8 +3,7 @@ package core
 import "github.com/gocondor/core/env"
 
 var testingAppC = AppConfig{
-	AppENV:        env.GetVarOtherwiseDefault("APP_ENV", "testing"), // local | production | testing
-	UseDotEnvFile: true,
+	AppEnv: env.GetVarOtherwiseDefault("APP_ENV", "testing"), // local | production | testing
 }
 
 var testingRequestC = RequestConfig{

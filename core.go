@@ -21,12 +21,10 @@ import (
 
 var logsDriver logger.LogsDriver
 var loggr *logger.Logger
-var appC AppConfig
 var requestC RequestConfig
 var jwtC JWTConfig
 
 type configContainer struct {
-	App     AppConfig
 	Request RequestConfig
 }
 
@@ -44,7 +42,6 @@ func New() *App {
 		chain:       &chain{},
 		middlewares: NewMiddlewares(),
 		Config: &configContainer{
-			App:     appC,
 			Request: requestC,
 		},
 	}
@@ -280,10 +277,6 @@ func (app *App) revHandlers(hs []Handler) []Handler {
 		rev = append(rev, hs[(len(hs)-1)-i])
 	}
 	return rev
-}
-
-func (app *App) SetAppConfig(a AppConfig) {
-	appC = a
 }
 
 func (app *App) SetRequestConfig(r RequestConfig) {

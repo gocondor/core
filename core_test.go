@@ -509,7 +509,6 @@ func createNewApp(t *testing.T) *App {
 	t.Helper()
 	a := New()
 	a.SetLogsDriver(&logger.LogNullDriver{})
-	a.SetAppConfig(testingAppC)
 	a.SetRequestConfig(testingRequestC)
 
 	return a

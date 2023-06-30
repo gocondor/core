@@ -11,6 +11,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime/debug"
+	"strconv"
 
 	"github.com/gocondor/core/env"
 	"github.com/gocondor/core/logger"
@@ -66,31 +67,60 @@ func (app *App) Bootstrap() {
 	loggr = logger.NewLogger(logsDriver)
 }
 
-func (app *App) Run(portNumber string, router *httprouter.Router) {
+func (app *App) Run(router *httprouter.Router) {
+	portNumber := os.Getenv("App_HTTP_PORT")
+	if portNumber == "" {
+		portNumber = "80"
+	}
 	router = app.RegisterRoutes(ResolveRouter().GetRoutes(), router)
+	useHttpsStr := os.Getenv("App_USE_HTTPS")
+	if useHttpsStr == "" {
+		useHttpsStr = "false"
+	}
+	useHttps, _ := strconv.ParseBool(useHttpsStr)
+
 	fmt.Printf("Welcome to GoCondor\n")
-	if appC.UseHttps {
+	if useHttps {
 		fmt.Printf("Listening on https \nWaiting for requests...\n")
 	} else {
 		fmt.Printf("Listening on port %s\nWaiting for requests...\n", portNumber)
 	}
-	if appC.UseHttps && appC.UseLetsEncrypt {
+	UseLetsEncryptStr := os.Getenv("App_USE_LETSENCRYPT")
+	if UseLetsEncryptStr == "" {
+		UseLetsEncryptStr = "false"
+	}
+	UseLetsEncrypt, _ := strconv.ParseBool(UseLetsEncryptStr)
+	if useHttps && UseLetsEncrypt {
 		m := &autocert.Manager{
-			Cache:      autocert.DirCache("letsencrypt-certs-dir"),
-			Prompt:     autocert.AcceptTOS,
-			Email:      appC.LetsEncryptEmail,
-			HostPolicy: autocert.HostWhitelist(appC.HttpsHosts),
+			Cache:  autocert.DirCache("letsencrypt-certs-dir"),
+			Prompt: autocert.AcceptTOS,
+		}
+		LetsEncryptEmail := os.Getenv("APP_LETSENCRYPT_EMAIL")
+		if LetsEncryptEmail != "" {
+			m.Email = LetsEncryptEmail
+		}
+		HttpsHosts := os.Getenv("App_HTTPS_HOSTS")
+		if HttpsHosts != "" {
+			m.HostPolicy = autocert.HostWhitelist(HttpsHosts)
 		}
 		log.Fatal(http.Serve(m.Listener(), router))
 		return
 	}
-	if appC.UseHttps && !appC.UseLetsEncrypt {
+	if useHttps && !UseLetsEncrypt {
 		wd, err := os.Getwd()
 		if err != nil {
 			panic("can not get the current working dir")
 		}
-		certFilePath := filepath.Join(wd, appC.CertFilePath)
-		KeyFilePath := filepath.Join(wd, appC.KeyFilePath)
+		CertFile := os.Getenv("App_CERT_FILE_PATH")
+		if CertFile == "" {
+			CertFile = "ssl/server.crt"
+		}
+		KeyFile := os.Getenv("App_KEY_FILE_PATH")
+		if KeyFile == "" {
+			KeyFile = "ssl/server.key"
+		}
+		certFilePath := filepath.Join(wd, CertFile)
+		KeyFilePath := filepath.Join(wd, KeyFile)
 		log.Fatal(http.ListenAndServeTLS(":443", certFilePath, KeyFilePath, router))
 		return
 	}

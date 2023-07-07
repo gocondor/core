@@ -16,6 +16,7 @@ import (
 	"strings"
 
 	"github.com/gocondor/core/logger"
+	"gorm.io/gorm"
 )
 
 type Context struct {
@@ -24,6 +25,7 @@ type Context struct {
 	logger    *logger.Logger
 	Validator *Validator
 	JWT       *JWT
+	GORM      *gorm.DB
 }
 
 // TODO enhance

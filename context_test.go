@@ -352,7 +352,7 @@ func TestGetUploadedFile(t *testing.T) {
 func TestMoveFile(t *testing.T) {
 	tmpDir := t.TempDir()
 	c := makeCTX(t)
-	c.MoveFile("testingdata/dummy.md", tmpDir, "dummy.md")
+	c.MoveFile("./testingdata/dummy.md", tmpDir, "dummy.md")
 	fi, err := os.Stat(filepath.Join(tmpDir, "dummy.md"))
 	if err != nil {
 		t.Errorf("failed test move file")
@@ -361,7 +361,7 @@ func TestMoveFile(t *testing.T) {
 		t.Errorf("failed test move file")
 	}
 	t.Cleanup(func() {
-		c.MoveFile(filepath.Join(tmpDir, "dummy.md"), "testing/data", "dummy.md")
+		c.MoveFile(filepath.Join(tmpDir, "dummy.md"), "./testingdata", "dummy.md")
 		os.Remove(filepath.Join(tmpDir, "dummy.md"))
 	})
 }

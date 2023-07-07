@@ -16,3 +16,7 @@ type JWTConfig struct {
 	SecretKey string
 	Lifetime  int
 }
+
+type GormConfig struct {
+	EnableGorm bool
+}

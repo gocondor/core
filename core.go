@@ -17,12 +17,15 @@ import (
 	"github.com/gocondor/core/logger"
 	"github.com/julienschmidt/httprouter"
 	"golang.org/x/crypto/acme/autocert"
+	"gorm.io/driver/mysql"
+	"gorm.io/gorm"
 )
 
 var logsDriver logger.LogsDriver
 var loggr *logger.Logger
 var requestC RequestConfig
 var jwtC JWTConfig
+var gormC GormConfig
 
 type configContainer struct {
 	Request RequestConfig
@@ -168,6 +171,7 @@ func (app *App) makeHTTPRouterHandlerFunc(hs []Handler) httprouter.Handle {
 				SigningKey: jwtC.SecretKey,
 				Lifetime:   jwtC.Lifetime,
 			}),
+			GORM: resolveGorm(),
 		}
 		ctx.prepare(ctx)
 		rhs := app.revHandlers(hs)
@@ -279,10 +283,40 @@ func (app *App) revHandlers(hs []Handler) []Handler {
 	return rev
 }
 
+func resolveGorm() *gorm.DB {
+	if !gormC.EnableGorm {
+		panic("gorm is disabled, you can enable it in the file config/gorm.go")
+	}
+	dsn := fmt.Sprintf("%v:%v@tcp(%v:%v)/%v?charset=%v&parseTime=True&loc=Local",
+		os.Getenv("MYSQL_USERNAME"),
+		os.Getenv("MYSQL_PASSWORD"),
+		os.Getenv("MYSQL_HOST"),
+		os.Getenv("MYSQL_PORT"),
+		os.Getenv("MYSQL_DB_NAME"),
+		os.Getenv("MYSQL_CHARSET"),
+	)
+	db, err := gorm.Open(mysql.New(mysql.Config{
+		DSN:                       dsn,   // data source name
+		DefaultStringSize:         256,   // default size for string fields
+		DisableDatetimePrecision:  true,  // disable datetime precision, which not supported before MySQL 5.6
+		DontSupportRenameIndex:    true,  // drop & create when rename index, rename index not supported before MySQL 5.7, MariaDB
+		DontSupportRenameColumn:   true,  // `change` when rename column, rename column not supported before MySQL 8, MariaDB
+		SkipInitializeWithVersion: false, // auto configure based on currently MySQL version
+	}), &gorm.Config{})
+	if err != nil {
+		panic(fmt.Sprintf("error initiating database connection", err))
+	}
+	return db
+}
+
 func (app *App) SetRequestConfig(r RequestConfig) {
 	requestC = r
 }
 
 func (app *App) SetJWTConfig(j JWTConfig) {
 	jwtC = j
+}
+
+func (app *App) SetGormConfig(g GormConfig) {
+	gormC = g
 }

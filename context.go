@@ -26,7 +26,7 @@ type Context struct {
 	Validator *Validator
 	JWT       *JWT
 	GetGorm   func() *gorm.DB
-	Cache     *Cache
+	GetCache  func() *Cache
 }
 
 // TODO enhance

@@ -174,8 +174,8 @@ func (app *App) makeHTTPRouterHandlerFunc(hs []Handler) httprouter.Handle {
 				SigningKey: jwtC.SecretKey,
 				Lifetime:   jwtC.Lifetime,
 			}),
-			GetGorm: resolveGorm(),
-			Cache:   NewCache(cacheC),
+			GetGorm:  resolveGorm(),
+			GetCache: resolveCache(),
 		}
 		ctx.prepare(ctx)
 		rhs := app.revHandlers(hs)
@@ -312,6 +312,16 @@ func resolveGorm() func() *gorm.DB {
 			panic("you are trying to use gorm but it's not enabled, you can enable it in the file config/gorm.go")
 		}
 		return db
+	}
+	return f
+}
+
+func resolveCache() func() *Cache {
+	f := func() *Cache {
+		if !cacheC.EnableCache {
+			panic("you are trying to use cache but it's not enabled, you can enable it in the file config/cache.go")
+		}
+		return NewCache(cacheC)
 	}
 	return f
 }

@@ -18,6 +18,7 @@ import (
 	"github.com/julienschmidt/httprouter"
 	"golang.org/x/crypto/acme/autocert"
 	"gorm.io/driver/mysql"
+	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
@@ -287,6 +288,34 @@ func resolveGorm() *gorm.DB {
 	if !gormC.EnableGorm {
 		panic("gorm is disabled, you can enable it in the file config/gorm.go")
 	}
+	switch os.Getenv("DB_DRIVER") {
+	case "mysql":
+		db, err := mysqlConnect()
+		if err != nil {
+			panic(fmt.Sprintf("error initiating mysql connection: %v", err))
+		}
+		return db
+	case "postgres":
+		dsn := fmt.Sprintf("host=%v user=%v password=%v dbname=%v port=%v sslmode=%v TimeZone=%v",
+			os.Getenv("POSTGRES_HOST"),
+			os.Getenv("POSTGRES_USER"),
+			os.Getenv("POSTGRES_PASSWORD"),
+			os.Getenv("POSTGRES_DB_NAME"),
+			os.Getenv("POSTGRES_PORT"),
+			os.Getenv("POSTGRES_SSL_MODE"),
+			os.Getenv("POSTGRES_TIMEZONE"),
+		)
+		db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+		if err != nil {
+			panic(fmt.Sprintf("error initiating postgres connection: %v", err))
+		}
+		return db
+	default:
+		panic("database driver not selected")
+	}
+}
+
+func mysqlConnect() (*gorm.DB, error) {
 	dsn := fmt.Sprintf("%v:%v@tcp(%v:%v)/%v?charset=%v&parseTime=True&loc=Local",
 		os.Getenv("MYSQL_USERNAME"),
 		os.Getenv("MYSQL_PASSWORD"),
@@ -295,7 +324,7 @@ func resolveGorm() *gorm.DB {
 		os.Getenv("MYSQL_DB_NAME"),
 		os.Getenv("MYSQL_CHARSET"),
 	)
-	db, err := gorm.Open(mysql.New(mysql.Config{
+	return gorm.Open(mysql.New(mysql.Config{
 		DSN:                       dsn,   // data source name
 		DefaultStringSize:         256,   // default size for string fields
 		DisableDatetimePrecision:  true,  // disable datetime precision, which not supported before MySQL 5.6
@@ -303,10 +332,6 @@ func resolveGorm() *gorm.DB {
 		DontSupportRenameColumn:   true,  // `change` when rename column, rename column not supported before MySQL 8, MariaDB
 		SkipInitializeWithVersion: false, // auto configure based on currently MySQL version
 	}), &gorm.Config{})
-	if err != nil {
-		panic(fmt.Sprintf("error initiating database connection", err))
-	}
-	return db
 }
 
 func (app *App) SetRequestConfig(r RequestConfig) {

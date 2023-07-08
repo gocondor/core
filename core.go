@@ -174,8 +174,8 @@ func (app *App) makeHTTPRouterHandlerFunc(hs []Handler) httprouter.Handle {
 				SigningKey: jwtC.SecretKey,
 				Lifetime:   jwtC.Lifetime,
 			}),
-			GORM:  resolveGorm(),
-			Cache: NewCache(cacheC),
+			GetGorm: resolveGorm(),
+			Cache:   NewCache(cacheC),
 		}
 		ctx.prepare(ctx)
 		rhs := app.revHandlers(hs)
@@ -287,45 +287,46 @@ func (app *App) revHandlers(hs []Handler) []Handler {
 	return rev
 }
 
-func resolveGorm() *gorm.DB {
-	if !gormC.EnableGorm {
-		panic("gorm is disabled, you can enable it in the file config/gorm.go")
-	}
+func resolveGorm() func() *gorm.DB {
+	var err error
+	var db *gorm.DB
 	switch os.Getenv("DB_DRIVER") {
 	case "mysql":
-		db, err := mysqlConnect()
-		if err != nil {
-			panic(fmt.Sprintf("error initiating mysql connection: %v", err))
-		}
-		return db
+		db, err = mysqlConnect()
 	case "postgres":
-		dsn := fmt.Sprintf("host=%v user=%v password=%v dbname=%v port=%v sslmode=%v TimeZone=%v",
-			os.Getenv("POSTGRES_HOST"),
-			os.Getenv("POSTGRES_USER"),
-			os.Getenv("POSTGRES_PASSWORD"),
-			os.Getenv("POSTGRES_DB_NAME"),
-			os.Getenv("POSTGRES_PORT"),
-			os.Getenv("POSTGRES_SSL_MODE"),
-			os.Getenv("POSTGRES_TIMEZONE"),
-		)
-		db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
-		if err != nil {
-			panic(fmt.Sprintf("error initiating postgres connection: %v", err))
-		}
-		return db
+		db, err = postgresConnect()
 	case "sqlite":
 		sqlitePath := os.Getenv("SQLITE_DB_PATH")
 		if sqlitePath == "" {
 			panic("wrong path to sqlite file")
 		}
-		db, err := gorm.Open(sqlite.Open(sqlitePath), &gorm.Config{})
-		if err != nil {
-			panic(fmt.Sprintf("error initiating sqlite connection: %v", err))
-		}
-		return db
+		db, err = gorm.Open(sqlite.Open(sqlitePath), &gorm.Config{})
 	default:
 		panic("database driver not selected")
 	}
+	if gormC.EnableGorm && err != nil {
+		panic(fmt.Sprintf("gorm has problem connecting to %v, (if you don't need it you can disable it in config/gorm.go): %v", os.Getenv("DB_DRIVER"), err))
+	}
+	f := func() *gorm.DB {
+		if !gormC.EnableGorm {
+			panic("you are trying to use gorm but it's not enabled, you can enable it in the file config/gorm.go")
+		}
+		return db
+	}
+	return f
+}
+
+func postgresConnect() (*gorm.DB, error) {
+	dsn := fmt.Sprintf("host=%v user=%v password=%v dbname=%v port=%v sslmode=%v TimeZone=%v",
+		os.Getenv("POSTGRES_HOST"),
+		os.Getenv("POSTGRES_USER"),
+		os.Getenv("POSTGRES_PASSWORD"),
+		os.Getenv("POSTGRES_DB_NAME"),
+		os.Getenv("POSTGRES_PORT"),
+		os.Getenv("POSTGRES_SSL_MODE"),
+		os.Getenv("POSTGRES_TIMEZONE"),
+	)
+	return gorm.Open(postgres.Open(dsn), &gorm.Config{})
 }
 
 func mysqlConnect() (*gorm.DB, error) {

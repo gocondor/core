@@ -25,7 +25,7 @@ type Context struct {
 	logger    *logger.Logger
 	Validator *Validator
 	JWT       *JWT
-	GORM      *gorm.DB
+	GetGorm   func() *gorm.DB
 	Cache     *Cache
 }
 

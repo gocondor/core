@@ -305,7 +305,7 @@ func resolveGorm() func() *gorm.DB {
 		panic("database driver not selected")
 	}
 	if gormC.EnableGorm && err != nil {
-		panic(fmt.Sprintf("gorm has problem connecting to %v, (if you don't need it you can disable it in config/gorm.go): %v", os.Getenv("DB_DRIVER"), err))
+		panic(fmt.Sprintf("gorm has problem connecting to %v, (if it's not needed you can disable it in config/gorm.go): %v", os.Getenv("DB_DRIVER"), err))
 	}
 	f := func() *gorm.DB {
 		if !gormC.EnableGorm {

@@ -32,7 +32,7 @@ func NewCache(cacheConfig CacheConfig) *Cache {
 
 	_, err = rdb.Ping(ctx).Result()
 	if cacheConfig.EnableCache && err != nil {
-		panic(fmt.Sprintf("problem connecting to redis cache, (if you don't need it you can disable it in config/cache.go): %v", err))
+		panic(fmt.Sprintf("problem connecting to redis cache, (if it's not needed you can disable it in config/cache.go): %v", err))
 	}
 
 	return &Cache{

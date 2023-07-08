@@ -29,6 +29,7 @@ var requestC RequestConfig
 var jwtC JWTConfig
 var gormC GormConfig
 var cacheC CacheConfig
+var db *gorm.DB
 
 type configContainer struct {
 	Request RequestConfig
@@ -174,7 +175,7 @@ func (app *App) makeHTTPRouterHandlerFunc(hs []Handler) httprouter.Handle {
 				SigningKey: jwtC.SecretKey,
 				Lifetime:   jwtC.Lifetime,
 			}),
-			GetGorm:  resolveGorm(),
+			GetGorm:  GetGormFunc(),
 			GetCache: resolveCache(),
 		}
 		ctx.prepare(ctx)
@@ -287,9 +288,18 @@ func (app *App) revHandlers(hs []Handler) []Handler {
 	return rev
 }
 
-func resolveGorm() func() *gorm.DB {
+func GetGormFunc() func() *gorm.DB {
+	f := func() *gorm.DB {
+		if !gormC.EnableGorm {
+			panic("you are trying to use gorm but it's not enabled, you can enable it in the file config/gorm.go")
+		}
+		return ResolveGorm()
+	}
+	return f
+}
+
+func NewGorm() *gorm.DB {
 	var err error
-	var db *gorm.DB
 	switch os.Getenv("DB_DRIVER") {
 	case "mysql":
 		db, err = mysqlConnect()
@@ -307,13 +317,15 @@ func resolveGorm() func() *gorm.DB {
 	if gormC.EnableGorm && err != nil {
 		panic(fmt.Sprintf("gorm has problem connecting to %v, (if it's not needed you can disable it in config/gorm.go): %v", os.Getenv("DB_DRIVER"), err))
 	}
-	f := func() *gorm.DB {
-		if !gormC.EnableGorm {
-			panic("you are trying to use gorm but it's not enabled, you can enable it in the file config/gorm.go")
-		}
+	return db
+}
+
+func ResolveGorm() *gorm.DB {
+	if db != nil {
 		return db
 	}
-	return f
+	db = NewGorm()
+	return db
 }
 
 func resolveCache() func() *Cache {

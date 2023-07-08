@@ -20,3 +20,7 @@ type JWTConfig struct {
 type GormConfig struct {
 	EnableGorm bool
 }
+
+type CacheConfig struct {
+	EnableCache bool
+}

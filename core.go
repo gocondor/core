@@ -28,6 +28,7 @@ var loggr *logger.Logger
 var requestC RequestConfig
 var jwtC JWTConfig
 var gormC GormConfig
+var cacheC CacheConfig
 
 type configContainer struct {
 	Request RequestConfig
@@ -173,7 +174,8 @@ func (app *App) makeHTTPRouterHandlerFunc(hs []Handler) httprouter.Handle {
 				SigningKey: jwtC.SecretKey,
 				Lifetime:   jwtC.Lifetime,
 			}),
-			GORM: resolveGorm(),
+			GORM:  resolveGorm(),
+			Cache: NewCache(cacheC),
 		}
 		ctx.prepare(ctx)
 		rhs := app.revHandlers(hs)
@@ -355,4 +357,8 @@ func (app *App) SetJWTConfig(j JWTConfig) {
 
 func (app *App) SetGormConfig(g GormConfig) {
 	gormC = g
+}
+
+func (app *App) SetCacheConfig(c CacheConfig) {
+	cacheC = c
 }

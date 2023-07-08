@@ -20,10 +20,17 @@ require (
 require (
 	github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2 // indirect
 	github.com/go-sql-driver/mysql v1.7.0 // indirect
+	github.com/jackc/pgpassfile v1.0.0 // indirect
+	github.com/jackc/pgservicefile v0.0.0-20221227161230-091c0ba34f0a // indirect
+	github.com/jackc/pgx/v5 v5.3.1 // indirect
+	github.com/mattn/go-sqlite3 v1.14.17 // indirect
+	github.com/redis/go-redis/v9 v9.0.5 // indirect
 	github.com/stretchr/testify v1.8.2 // indirect
 	golang.org/x/net v0.10.0 // indirect
 	golang.org/x/text v0.9.0 // indirect
 	gorm.io/driver/mysql v1.5.1 // indirect
+	gorm.io/driver/postgres v1.5.2 // indirect
+	gorm.io/driver/sqlite v1.5.2 // indirect
 )
 
 require (

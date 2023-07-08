@@ -19,6 +19,7 @@ import (
 	"golang.org/x/crypto/acme/autocert"
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/postgres"
+	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
 
@@ -308,6 +309,16 @@ func resolveGorm() *gorm.DB {
 		db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 		if err != nil {
 			panic(fmt.Sprintf("error initiating postgres connection: %v", err))
+		}
+		return db
+	case "sqlite":
+		sqlitePath := os.Getenv("SQLITE_DB_PATH")
+		if sqlitePath == "" {
+			panic("wrong path to sqlite file")
+		}
+		db, err := gorm.Open(sqlite.Open(sqlitePath), &gorm.Config{})
+		if err != nil {
+			panic(fmt.Sprintf("error initiating sqlite connection: %v", err))
 		}
 		return db
 	default:

@@ -21,7 +21,7 @@ func NewCache(cacheConfig CacheConfig) *Cache {
 	dbStr := os.Getenv("REDIS_DB")
 	db64, err := strconv.ParseInt(dbStr, 10, 64)
 	if err != nil {
-		panic(fmt.Sprintf("error parsing redis db env var", err))
+		panic(fmt.Sprintf("error parsing redis db env var: %v", err))
 	}
 	db := int(db64)
 	rdb := redis.NewClient(&redis.Options{

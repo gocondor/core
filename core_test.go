@@ -238,8 +238,8 @@ func makeCTX(t *testing.T) *Context {
 		logger: logger.NewLogger(&logger.LogFileDriver{
 			FilePath: lgsPath,
 		}),
-		Validator: nil,
-		JWT:       nil,
+		GetValidator: nil,
+		GetJWT:       nil,
 	}
 }
 

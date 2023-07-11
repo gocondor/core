@@ -67,7 +67,6 @@ func (app *App) Bootstrap() {
 	NewRouter()
 	// database.New()
 	// cache.New(app.Features.Cache)
-	newValidator()
 	loggr = logger.NewLogger(logsDriver)
 }
 
@@ -169,14 +168,11 @@ func (app *App) makeHTTPRouterHandlerFunc(hs []Handler) httprouter.Handle {
 				jsonBody:           []byte(""),
 				HttpResponseWriter: w,
 			},
-			logger:    loggr,
-			Validator: newValidator(),
-			JWT: newJWT(JWTOptions{
-				SigningKey: jwtC.SecretKey,
-				Lifetime:   jwtC.Lifetime,
-			}),
-			GetGorm:  GetGormFunc(),
-			GetCache: resolveCache(),
+			logger:       loggr,
+			GetValidator: getValidator(),
+			GetJWT:       getJWT(),
+			GetGorm:      GetGormFunc(),
+			GetCache:     resolveCache(),
 		}
 		ctx.prepare(ctx)
 		rhs := app.revHandlers(hs)
@@ -370,12 +366,38 @@ func mysqlConnect() (*gorm.DB, error) {
 	}), &gorm.Config{})
 }
 
-func (app *App) SetRequestConfig(r RequestConfig) {
-	requestC = r
+func getJWT() func() *JWT {
+	f := func() *JWT {
+		secret := os.Getenv("JWT_SECRET")
+		if secret == "" {
+			panic("jwt secret key is not set")
+		}
+		lifetimeStr := os.Getenv("JWT_LIFESPAN_MINUTES")
+		if lifetimeStr == "" {
+			lifetimeStr = "10080" // 7 days
+		}
+		lifetime64, err := strconv.ParseInt(lifetimeStr, 10, 32)
+		if err != nil {
+			panic(err)
+		}
+		lifetime := int(lifetime64)
+		return newJWT(JWTOptions{
+			SigningKey: secret,
+			Lifetime:   lifetime,
+		})
+	}
+	return f
 }
 
-func (app *App) SetJWTConfig(j JWTConfig) {
-	jwtC = j
+func getValidator() func() *Validator {
+	f := func() *Validator {
+		return &Validator{}
+	}
+	return f
+}
+
+func (app *App) SetRequestConfig(r RequestConfig) {
+	requestC = r
 }
 
 func (app *App) SetGormConfig(g GormConfig) {

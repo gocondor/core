@@ -32,9 +32,9 @@ func TestDebugAny(t *testing.T) {
 			jsonBody:           []byte(""),
 			HttpResponseWriter: w,
 		},
-		logger:    logger.NewLogger(&logger.LogNullDriver{}),
-		Validator: nil,
-		JWT:       nil,
+		logger:       logger.NewLogger(&logger.LogNullDriver{}),
+		GetValidator: nil,
+		GetJWT:       nil,
 	}
 	h := func(c *Context) func(w http.ResponseWriter, r *http.Request) {
 		return func(w http.ResponseWriter, r *http.Request) {
@@ -502,8 +502,8 @@ func makeCTXLogTestCTX(t *testing.T, w http.ResponseWriter, r *http.Request, tmp
 			jsonBody:           []byte(""),
 			HttpResponseWriter: w,
 		},
-		logger:    logger.NewLogger(&logger.LogFileDriver{FilePath: tmpFilePath}),
-		Validator: nil,
-		JWT:       nil,
+		logger:       logger.NewLogger(&logger.LogFileDriver{FilePath: tmpFilePath}),
+		GetValidator: nil,
+		GetJWT:       nil,
 	}
 }

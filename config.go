@@ -4,7 +4,7 @@
 
 package core
 
-type EnvFile struct {
+type EnvFileConfig struct {
 	UseDotEnvFile bool
 }
 

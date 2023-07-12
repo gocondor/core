@@ -16,8 +16,6 @@ type validationResult struct {
 	hasFailed     bool
 	errorMessages map[string]string
 }
-type ValidatorData map[string]interface{}
-type ValidatorRules map[string]interface{}
 
 var vr validationResult
 var v *Validator
@@ -31,7 +29,7 @@ func resolve() *Validator {
 	return v
 }
 
-func (v *Validator) Validate(data ValidatorData, rules ValidatorRules) validationResult {
+func (v *Validator) Validate(data map[string]interface{}, rules map[string]interface{}) validationResult {
 	vr = validationResult{}
 	vr.hasFailed = false
 	res := map[string]string{}

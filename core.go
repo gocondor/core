@@ -173,6 +173,7 @@ func (app *App) makeHTTPRouterHandlerFunc(hs []Handler) httprouter.Handle {
 			GetJWT:       getJWT(),
 			GetGorm:      GetGormFunc(),
 			GetCache:     resolveCache(),
+			GetHashing:   resloveHashing(),
 		}
 		ctx.prepare(ctx)
 		rhs := app.revHandlers(hs)
@@ -189,6 +190,11 @@ func (app *App) makeHTTPRouterHandlerFunc(hs []Handler) httprouter.Handle {
 		}
 		if string(ctx.Response.getJsonBody()) != "" {
 			w.Header().Add(CONTENT_TYPE, CONTENT_TYPE_JSON)
+			code := ctx.Response.getStatusCode()
+			if code == 0 {
+				code = http.StatusOK
+			}
+			w.WriteHeader(code)
 			w.Write(ctx.Response.getJsonBody())
 		}
 		app.t = 0
@@ -392,6 +398,13 @@ func getJWT() func() *JWT {
 func getValidator() func() *Validator {
 	f := func() *Validator {
 		return &Validator{}
+	}
+	return f
+}
+
+func resloveHashing() func() *Hashing {
+	f := func() *Hashing {
+		return &Hashing{}
 	}
 	return f
 }

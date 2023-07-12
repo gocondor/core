@@ -5,6 +5,7 @@
 package core
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -27,6 +28,7 @@ type Context struct {
 	GetJWT       func() *JWT
 	GetGorm      func() *gorm.DB
 	GetCache     func() *Cache
+	GetHashing   func() *Hashing
 }
 
 // TODO enhance
@@ -155,6 +157,22 @@ func (c *Context) MoveFile(sourceFilePath string, destFolderPath string, newFile
 		}
 	}
 	return nil
+}
+
+func (c *Context) InterfaceToString(v interface{}) string {
+	return fmt.Sprintf("%v", v)
+}
+
+func (c *Context) MapToJson(v any) string {
+	r := reflect.ValueOf(v)
+	if r.Kind() != reflect.Map {
+		panic("parameter is not a map")
+	}
+	j, err := json.Marshal(v)
+	if err != nil {
+		panic(err.Error())
+	}
+	return string(j)
 }
 
 type UploadedFileInfo struct {

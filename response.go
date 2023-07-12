@@ -13,6 +13,7 @@ type Response struct {
 	headers            []header
 	textBody           string
 	jsonBody           []byte
+	statusCode         int
 	HttpResponseWriter http.ResponseWriter
 }
 
@@ -21,16 +22,28 @@ type header struct {
 	val string
 }
 
-func (rs *Response) WriteText(body interface{}) {
+func (rs *Response) WriteText(body interface{}) *Response {
 	if rs.textBody == "" {
 		rs.textBody = rs.castBasicVarsToString(body)
 	}
+	return rs
 }
 
-func (rs *Response) WriteJson(body []byte) {
+func (rs *Response) WriteJson(body []byte) *Response {
 	if string(rs.jsonBody) == "" {
 		rs.jsonBody = body
 	}
+	return rs
+}
+
+func (rs *Response) SetStatusCode(code int) *Response {
+	rs.statusCode = code
+
+	return rs
+}
+
+func (rs *Response) getStatusCode() int {
+	return rs.statusCode
 }
 
 func (rs *Response) getTextBody() string {

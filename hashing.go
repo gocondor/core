@@ -23,6 +23,10 @@ func (h *Hashing) HashPassword(password string) (string, error) {
 
 func (h *Hashing) CheckPasswordHash(hashedPassword string, originalPassowrd string) (bool, error) {
 	err := bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(originalPassowrd))
+	if err != nil && errors.Is(err, bcrypt.ErrMismatchedHashAndPassword) {
+		return false, nil
+	}
+
 	if err != nil {
 		fmt.Print(err)
 		loggr.Debug(err.Error())

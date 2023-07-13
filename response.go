@@ -126,4 +126,5 @@ func (rs *Response) castBasicVarsToString(data interface{}) string {
 func (rs *Response) reset() {
 	rs.textBody = ""
 	rs.jsonBody = []byte("")
+	rs.statusCode = http.StatusOK
 }

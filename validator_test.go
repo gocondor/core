@@ -201,11 +201,11 @@ var rulesTestDataList = []ruleTestData{
 
 func TestValidatorValidate(t *testing.T) {
 	validator := newValidator()
-	v := validator.Validate(ValidatorData{
+	v := validator.Validate(map[string]interface{}{
 		"name": gofakeit.LoremIpsumWord(),
 		"link": gofakeit.URL(),
 	},
-		ValidatorRules{
+		map[string]interface{}{
 			"name": "required|alphaNumeric",
 			"link": "required|url",
 		},
@@ -213,11 +213,11 @@ func TestValidatorValidate(t *testing.T) {
 	if v.Failed() {
 		t.Errorf("erro testing validator validate: '%v'", v.GetErrorMessagesJson())
 	}
-	v = validator.Validate(ValidatorData{
+	v = validator.Validate(map[string]interface{}{
 		"name": "",
 		"link": gofakeit.URL(),
 	},
-		ValidatorRules{
+		map[string]interface{}{
 			"name": "required|alphaNumeric",
 			"link": "required|url",
 		},

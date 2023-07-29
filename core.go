@@ -5,7 +5,6 @@
 package core
 
 import (
-	"crypto/tls"
 	"fmt"
 	"log"
 	"net/http"
@@ -16,7 +15,6 @@ import (
 
 	"github.com/gocondor/core/env"
 	"github.com/gocondor/core/logger"
-	"github.com/harranali/mailing"
 	"github.com/julienschmidt/httprouter"
 	"golang.org/x/crypto/acme/autocert"
 	"gorm.io/driver/mysql"
@@ -32,7 +30,7 @@ var jwtC JWTConfig
 var gormC GormConfig
 var cacheC CacheConfig
 var db *gorm.DB
-var mailer *mailing.Mailer
+var mailer *Mailer
 
 type configContainer struct {
 	Request RequestConfig
@@ -413,98 +411,32 @@ func resloveHashing() func() *Hashing {
 	return f
 }
 
-// TODO implement the mail wrapper
-func resolveMailer() func() *mailing.Mailer {
-	f := func() *mailing.Mailer {
-		var mailer *mailing.Mailer
+func resolveMailer() func() *Mailer {
+	f := func() *Mailer {
+		if mailer != nil {
+			return mailer
+		}
+		var m *Mailer
 		var emailsDriver string
 		if os.Getenv("EMAILS_DRIVER") == "" {
 			emailsDriver = "SMTP"
 		}
 		switch emailsDriver {
 		case "SMTP":
-			mailer = initiateMailerWithSMTP()
+			m = initiateMailerWithSMTP()
 		case "sparkpost":
-			mailer = initiateMailerWithSparkPost()
+			m = initiateMailerWithSparkPost()
 		case "sendgrid":
-			mailer = initiateMailerWithSendGrid()
+			m = initiateMailerWithSendGrid()
 		case "mailgun":
 			return initiateMailerWithMailGun()
 		default:
-			mailer = initiateMailerWithSMTP()
+			m = initiateMailerWithSMTP()
 		}
+		mailer = m
 		return mailer
 	}
 	return f
-}
-
-func initiateMailerWithSMTP() *mailing.Mailer {
-	portStr := os.Getenv("SMTP_PORT")
-	if portStr == "" {
-		panic("error reading smtp port env var")
-	}
-	port, err := strconv.ParseInt(portStr, 10, 64)
-	if err != nil {
-		panic(fmt.Sprintf("error parsing smtp port env var: %v", err))
-	}
-	skipTlsVerifyStr := os.Getenv("SMTP_TLS_SKIP_VERIFY_HOST")
-	if skipTlsVerifyStr == "" {
-		panic("error reading smtp tls verify env var")
-	}
-	skipTlsVerify, err := strconv.ParseBool(skipTlsVerifyStr)
-	if err != nil {
-		panic(fmt.Sprintf("error parsing smtp tls verify env var: %v", err))
-	}
-	return mailing.NewMailerWithSMTP(&mailing.SMTPConfig{
-		Host:     os.Getenv("SMTP_HOST"),
-		Port:     int(port),
-		Username: os.Getenv("SMTP_USERNAME"),
-		Password: os.Getenv("SMTP_PASSWORD"),
-		TLSConfig: tls.Config{
-			ServerName:         os.Getenv("SMTP_HOST"),
-			InsecureSkipVerify: skipTlsVerify,
-		},
-	})
-}
-
-func initiateMailerWithSparkPost() *mailing.Mailer {
-	apiVersionStr := os.Getenv("SPARKPOST_API_VERSION")
-	if apiVersionStr == "" {
-		panic("error reading sparkpost base url env var")
-	}
-	apiVersion, err := strconv.ParseInt(apiVersionStr, 10, 64)
-	if err != nil {
-		panic(fmt.Sprintf("error parsing sparkpost base url env var: %v", apiVersion))
-	}
-	return mailing.NewMailerWithSparkPost(&mailing.SparkPostConfig{
-		BaseUrl:    os.Getenv("SPARKPOST_BASE_URL"),
-		ApiKey:     os.Getenv("SPARKPOST_API_KEY"),
-		ApiVersion: int(apiVersion),
-	})
-}
-
-func initiateMailerWithSendGrid() *mailing.Mailer {
-	return mailing.NewMailerWithSendGrid(&mailing.SendGridConfig{
-		Host:     os.Getenv("SENDGRID_HOST"),
-		Endpoint: os.Getenv("SENDGRID_ENDPOINT"),
-		ApiKey:   os.Getenv("SENDGRID_API_KEY"),
-	})
-}
-
-func initiateMailerWithMailGun() *mailing.Mailer {
-	skipTlsVerifyStr := os.Getenv("MAILGUN_TLS_SKIP_VERIFY_HOST")
-	if skipTlsVerifyStr == "" {
-		panic("error reading mailgun tls verify env var")
-	}
-	skipTlsVerify, err := strconv.ParseBool(skipTlsVerifyStr)
-	if err != nil {
-		panic(fmt.Sprintf("error parsing mailgun tls verify env var: %v", err))
-	}
-	return mailing.NewMailerWithMailGun(&mailing.MailGunConfig{
-		Domain:              os.Getenv("MAILGUN_DOMAIN"),
-		APIKey:              os.Getenv("MAILGUN_API_KEY"),
-		SkipTLSVerification: skipTlsVerify,
-	})
 }
 
 func (app *App) SetRequestConfig(r RequestConfig) {

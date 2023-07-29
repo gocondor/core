@@ -17,7 +17,6 @@ import (
 	"strings"
 
 	"github.com/gocondor/core/logger"
-	"github.com/harranali/mailing"
 	"gorm.io/gorm"
 )
 
@@ -30,7 +29,7 @@ type Context struct {
 	GetGorm      func() *gorm.DB
 	GetCache     func() *Cache
 	GetHashing   func() *Hashing
-	GetMailer    func() *mailing.Mailer
+	GetMailer    func() *Mailer
 }
 
 // TODO enhance

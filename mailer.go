@@ -52,6 +52,7 @@ func initiateMailerWithSMTP() *Mailer {
 	if err != nil {
 		panic(fmt.Sprintf("error parsing smtp tls verify env var: %v", err))
 	}
+
 	return &Mailer{
 		mailer: mailing.NewMailerWithSMTP(&mailing.SMTPConfig{
 			Host:     os.Getenv("SMTP_HOST"),
@@ -111,6 +112,15 @@ func initiateMailerWithMailGun() *Mailer {
 			SkipTLSVerification: skipTlsVerify,
 		}),
 	}
+}
+
+func (m *Mailer) SetFrom(emailAddresses EmailAddress) *Mailer {
+	e := mailing.EmailAddress{
+		Name:    emailAddresses.Name,
+		Address: emailAddresses.Address,
+	}
+	m.mailer.SetFrom(e)
+	return m
 }
 
 func (m *Mailer) SetTo(emailAddresses []EmailAddress) *Mailer {

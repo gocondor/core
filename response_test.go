@@ -5,12 +5,12 @@ import (
 	"testing"
 )
 
-func TestWriteText(t *testing.T) {
+func TestWrite(t *testing.T) {
 	res := Response{}
 	v := "test-text"
-	res.WriteText(v)
+	res.Write(v)
 
-	if res.getTextBody() != v {
+	if res.getBody() != v {
 		t.Errorf("failed writing text")
 	}
 }
@@ -37,8 +37,8 @@ func TestSetHeaders(t *testing.T) {
 
 func TestReset(t *testing.T) {
 	res := Response{}
-	res.WriteText("test text")
-	if res.getTextBody() == "" {
+	res.Write("test text")
+	if res.getBody() == "" {
 		t.Errorf("expecting textBody to not be empty, found empty")
 	}
 	j := "{\"name\": \"test\"}"
@@ -49,7 +49,7 @@ func TestReset(t *testing.T) {
 
 	res.reset()
 
-	if !(res.getTextBody() == "" && string(res.getJsonBody()) == "") {
+	if !(res.getBody() == "" && string(res.getJsonBody()) == "") {
 		t.Errorf("failed testing response reset()")
 	}
 }

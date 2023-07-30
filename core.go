@@ -186,9 +186,15 @@ func (app *App) makeHTTPRouterHandlerFunc(hs []Handler) httprouter.Handle {
 			w.Header().Add(header.key, header.val)
 		}
 		logger.CloseLogsFile()
-		if ctx.Response.getTextBody() != "" {
-			w.Header().Add(CONTENT_TYPE, CONTENT_TYPE_HTML)
-			w.Write([]byte(ctx.Response.getTextBody()))
+		if ctx.Response.getBody() != "" {
+			var ct string
+			if ctx.Response.getContentType() != "" {
+				ct = ctx.Response.getContentType()
+			} else {
+				ct = CONTENT_TYPE_HTML
+			}
+			w.Header().Add(CONTENT_TYPE, ct)
+			w.Write([]byte(ctx.Response.getBody()))
 		}
 		if string(ctx.Response.getJsonBody()) != "" {
 			w.Header().Add(CONTENT_TYPE, CONTENT_TYPE_JSON)

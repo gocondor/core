@@ -158,7 +158,7 @@ func TestGetPathParams(t *testing.T) {
 	h := a.makeHTTPRouterHandlerFunc([]Handler{
 		func(c *Context) {
 			rsp := fmt.Sprintf("param1: %v | param2: %v", c.GetPathParam("param1"), c.GetPathParam("param2"))
-			c.Response.WriteText(rsp)
+			c.Response.Write(rsp)
 		},
 	})
 	h(w, r, pathParams)

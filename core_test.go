@@ -54,7 +54,7 @@ func TestMakeHTTPHandlerFunc(t *testing.T) {
 			f, _ := os.Create(tmpFile)
 			f.WriteString("DFT2V56H")
 			c.Response.SetHeader("header-key", "header-val")
-			c.Response.WriteText("DFT2V56H")
+			c.Response.Write("DFT2V56H")
 		},
 	}
 	h := app.makeHTTPRouterHandlerFunc(hs)

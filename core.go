@@ -248,7 +248,7 @@ var panicHandler = func(w http.ResponseWriter, r *http.Request, e interface{}) {
 	w.Write([]byte(res))
 }
 
-func UseMiddleware(mw func(c *Context)) {
+func UseMiddleware(mw func(c *Context) *Response) {
 	ResolveMiddlewares().Attach(mw)
 }
 

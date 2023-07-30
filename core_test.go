@@ -50,11 +50,11 @@ func TestMakeHTTPHandlerFunc(t *testing.T) {
 		FilePath: filepath.Join(t.TempDir(), uuid.NewString()),
 	})
 	hs := []Handler{
-		func(c *Context) {
+		func(c *Context) *Response {
 			f, _ := os.Create(tmpFile)
 			f.WriteString("DFT2V56H")
 			c.Response.SetHeader("header-key", "header-val")
-			c.Response.Write("DFT2V56H")
+			return c.Response.Write("DFT2V56H")
 		},
 	}
 	h := app.makeHTTPRouterHandlerFunc(hs)
@@ -78,11 +78,11 @@ func TestMakeHTTPHandlerFuncVerifyJson(t *testing.T) {
 		FilePath: filepath.Join(t.TempDir(), uuid.NewString()),
 	})
 	hs := []Handler{
-		func(c *Context) {
+		func(c *Context) *Response {
 			f, _ := os.Create(tmpFile)
 			f.WriteString("DFT2V56H")
 			c.Response.SetHeader("header-key", "header-val")
-			c.Response.WriteJson([]byte("{\"testKey\": \"testVal\"}"))
+			return c.Response.WriteJson([]byte("{\"testKey\": \"testVal\"}"))
 		},
 	}
 	h := app.makeHTTPRouterHandlerFunc(hs)
@@ -135,7 +135,7 @@ func TestNotFoundHandler(t *testing.T) {
 
 func TestUseMiddleware(t *testing.T) {
 	app := createNewApp(t)
-	UseMiddleware(func(c *Context) { c.LogInfo("Testing!") })
+	UseMiddleware(func(c *Context) *Response { c.LogInfo("Testing!"); return nil })
 	if len(app.middlewares.GetMiddlewares()) != 1 {
 		t.Errorf("failed testing use middleware")
 	}
@@ -144,7 +144,8 @@ func TestUseMiddleware(t *testing.T) {
 func TestChainReset(t *testing.T) {
 	c := &chain{}
 	c.nodes = []Handler{
-		func(c *Context) { c.LogInfo("Testing1!") }, func(c *Context) { c.LogInfo("Testing2!") },
+		func(c *Context) *Response { c.LogInfo("Testing1!"); return nil },
+		func(c *Context) *Response { c.LogInfo("Testing2!"); return nil },
 	}
 
 	c.reset()
@@ -158,10 +159,11 @@ func TestNext(t *testing.T) {
 	app.t = 0
 	tfPath := filepath.Join(t.TempDir(), uuid.NewString())
 	hs := []Handler{
-		func(c *Context) { c.Next() },
-		func(c *Context) {
+		func(c *Context) *Response { c.Next(); return nil },
+		func(c *Context) *Response {
 			f, _ := os.Create(tfPath)
 			f.WriteString("DFT2V56H")
+			return nil
 		},
 	}
 	app.prepareChain(hs)
@@ -176,10 +178,11 @@ func TestChainGetByIndex(t *testing.T) {
 	c := &chain{}
 	tf := filepath.Join(t.TempDir(), uuid.NewString())
 	c.nodes = []Handler{
-		func(c *Context) { c.LogInfo("testing!") },
-		func(c *Context) {
+		func(c *Context) *Response { c.LogInfo("testing!"); return nil },
+		func(c *Context) *Response {
 			f, _ := os.Create(tf)
 			f.WriteString("DFT2V56H")
+			return nil
 		},
 	}
 	c.getByIndex(1)(makeCTX(t))
@@ -191,10 +194,10 @@ func TestChainGetByIndex(t *testing.T) {
 
 func TestPrepareChain(t *testing.T) {
 	app := createNewApp(t)
-	UseMiddleware(func(c *Context) { c.LogInfo("Testing!") })
+	UseMiddleware(func(c *Context) *Response { c.LogInfo("Testing!"); return nil })
 	hs := []Handler{
-		func(c *Context) { c.LogInfo("testing1!") },
-		func(c *Context) { c.LogInfo("testing2!") },
+		func(c *Context) *Response { c.LogInfo("testing1!"); return nil },
+		func(c *Context) *Response { c.LogInfo("testing2!"); return nil },
 	}
 	app.prepareChain(hs)
 	if len(app.chain.nodes) != 3 {
@@ -207,10 +210,11 @@ func TestChainExecute(t *testing.T) {
 	f1Path := filepath.Join(tmpDir, uuid.NewString())
 	c := &chain{}
 	c.nodes = []Handler{
-		func(c *Context) {
+		func(c *Context) *Response {
 			tf, _ := os.Create(f1Path)
 			defer tf.Close()
 			tf.WriteString("DFT2V56H")
+			return nil
 		},
 	}
 	ctx := makeCTX(t)
@@ -245,8 +249,8 @@ func makeCTX(t *testing.T) *Context {
 
 func TestRevHAndlers(t *testing.T) {
 	app := createNewApp(t)
-	t1 := func(c *Context) { c.LogInfo("Testing1!") }
-	t2 := func(c *Context) { c.LogInfo("Testing2!") }
+	t1 := func(c *Context) *Response { c.LogInfo("Testing1!"); return nil }
+	t2 := func(c *Context) *Response { c.LogInfo("Testing2!"); return nil }
 
 	handlers := []Handler{t1, t2}
 	reved := app.revHandlers(handlers)
@@ -263,26 +267,33 @@ func TestRegisterGetRoute(t *testing.T) {
 	app := New()
 	hr := httprouter.New()
 	gcr := NewRouter()
-	gcr.Get("/", func(c *Context) {
+	gcr.Get("/", func(c *Context) *Response {
 		fmt.Fprintln(c.Response.HttpResponseWriter, c.GetRequestParam("param"))
+		return nil
 	})
-	gcr.Post("/", func(c *Context) {
+	gcr.Post("/", func(c *Context) *Response {
 		fmt.Fprintln(c.Response.HttpResponseWriter, c.GetRequestParam("param"))
+		return nil
 	})
-	gcr.Delete("/", func(c *Context) {
+	gcr.Delete("/", func(c *Context) *Response {
 		fmt.Fprintln(c.Response.HttpResponseWriter, c.GetRequestParam("param"))
+		return nil
 	})
-	gcr.Patch("/", func(c *Context) {
+	gcr.Patch("/", func(c *Context) *Response {
 		fmt.Fprintln(c.Response.HttpResponseWriter, c.GetRequestParam("param"))
+		return nil
 	})
-	gcr.Put("/", func(c *Context) {
+	gcr.Put("/", func(c *Context) *Response {
 		fmt.Fprintln(c.Response.HttpResponseWriter, c.GetRequestParam("param"))
+		return nil
 	})
-	gcr.Options("/", func(c *Context) {
+	gcr.Options("/", func(c *Context) *Response {
 		fmt.Fprintln(c.Response.HttpResponseWriter, c.GetRequestParam("param"))
+		return nil
 	})
-	gcr.Head("/", func(c *Context) {
+	gcr.Head("/", func(c *Context) *Response {
 		fmt.Fprintln(c.Response.HttpResponseWriter, c.GetRequestParam("param"))
+		return nil
 	})
 	hr = app.RegisterRoutes(gcr.GetRoutes(), hr)
 	s := httptest.NewServer(hr)
@@ -310,8 +321,9 @@ func TestRegisterPostRoute(t *testing.T) {
 	app := New()
 	hr := httprouter.New()
 	gcr := NewRouter()
-	gcr.Post("/", func(c *Context) {
+	gcr.Post("/", func(c *Context) *Response {
 		fmt.Fprintln(c.Response.HttpResponseWriter, c.GetRequestParam("param"))
+		return nil
 	})
 	hr = app.RegisterRoutes(gcr.GetRoutes(), hr)
 	s := httptest.NewServer(hr)
@@ -339,8 +351,9 @@ func TestRegisterDeleteRoute(t *testing.T) {
 	app := New()
 	hr := httprouter.New()
 	gcr := NewRouter()
-	gcr.Delete("/", func(c *Context) {
+	gcr.Delete("/", func(c *Context) *Response {
 		fmt.Fprintln(c.Response.HttpResponseWriter, c.GetRequestParam("param"))
+		return nil
 	})
 	hr = app.RegisterRoutes(gcr.GetRoutes(), hr)
 	s := httptest.NewServer(hr)
@@ -368,8 +381,9 @@ func TestRegisterPatchRoute(t *testing.T) {
 	app := New()
 	hr := httprouter.New()
 	gcr := NewRouter()
-	gcr.Patch("/", func(c *Context) {
+	gcr.Patch("/", func(c *Context) *Response {
 		fmt.Fprintln(c.Response.HttpResponseWriter, c.GetRequestParam("param"))
+		return nil
 	})
 	hr = app.RegisterRoutes(gcr.GetRoutes(), hr)
 	s := httptest.NewServer(hr)
@@ -397,8 +411,9 @@ func TestRegisterPutRoute(t *testing.T) {
 	app := New()
 	hr := httprouter.New()
 	gcr := NewRouter()
-	gcr.Put("/", func(c *Context) {
+	gcr.Put("/", func(c *Context) *Response {
 		fmt.Fprintln(c.Response.HttpResponseWriter, c.GetRequestParam("param"))
+		return nil
 	})
 	hr = app.RegisterRoutes(gcr.GetRoutes(), hr)
 	s := httptest.NewServer(hr)
@@ -426,8 +441,9 @@ func TestRegisterOptionsRoute(t *testing.T) {
 	app := New()
 	hr := httprouter.New()
 	gcr := NewRouter()
-	gcr.Options("/", func(c *Context) {
+	gcr.Options("/", func(c *Context) *Response {
 		fmt.Fprintln(c.Response.HttpResponseWriter, c.GetRequestParam("param"))
+		return nil
 	})
 	hr = app.RegisterRoutes(gcr.GetRoutes(), hr)
 	s := httptest.NewServer(hr)
@@ -456,7 +472,7 @@ func TestRegisterHeadRoute(t *testing.T) {
 	hr := httprouter.New()
 	gcr := NewRouter()
 	tfp := filepath.Join(t.TempDir(), uuid.NewString())
-	gcr.Head("/", func(c *Context) {
+	gcr.Head("/", func(c *Context) *Response {
 		param := c.GetRequestParam("param")
 		p, _ := param.(string)
 		f, err := os.OpenFile(p, os.O_CREATE|os.O_RDWR, 777)
@@ -465,6 +481,7 @@ func TestRegisterHeadRoute(t *testing.T) {
 		}
 		defer f.Close()
 		f.WriteString("fromhead")
+		return nil
 	})
 	hr = app.RegisterRoutes(gcr.GetRoutes(), hr)
 	s := httptest.NewServer(hr)

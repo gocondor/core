@@ -4,4 +4,4 @@
 
 package core
 
-type Handler func(c *Context)
+type Handler func(c *Context) *Response

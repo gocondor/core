@@ -156,9 +156,9 @@ func TestGetPathParams(t *testing.T) {
 	}
 	a := New()
 	h := a.makeHTTPRouterHandlerFunc([]Handler{
-		func(c *Context) {
+		func(c *Context) *Response {
 			rsp := fmt.Sprintf("param1: %v | param2: %v", c.GetPathParam("param1"), c.GetPathParam("param2"))
-			c.Response.Write(rsp)
+			return c.Response.Write(rsp)
 		},
 	})
 	h(w, r, pathParams)
@@ -176,11 +176,13 @@ func TestGetRequestParams(t *testing.T) {
 	app := New()
 	hr := httprouter.New()
 	gcr := NewRouter()
-	gcr.Post("/pt", func(c *Context) {
+	gcr.Post("/pt", func(c *Context) *Response {
 		fmt.Fprintln(c.Response.HttpResponseWriter, c.GetRequestParam("param"))
+		return nil
 	})
-	gcr.Get("/gt", func(c *Context) {
+	gcr.Get("/gt", func(c *Context) *Response {
 		fmt.Fprintln(c.Response.HttpResponseWriter, c.GetRequestParam("param"))
+		return nil
 	})
 	hr = app.RegisterRoutes(gcr.GetRoutes(), hr)
 	s := httptest.NewServer(hr)
@@ -213,11 +215,13 @@ func TestRequestParamsExists(t *testing.T) {
 	app := New()
 	hr := httprouter.New()
 	gcr := NewRouter()
-	gcr.Post("/pt", func(c *Context) {
+	gcr.Post("/pt", func(c *Context) *Response {
 		fmt.Fprintln(c.Response.HttpResponseWriter, c.RequestParamExists("param"))
+		return nil
 	})
-	gcr.Get("/gt", func(c *Context) {
+	gcr.Get("/gt", func(c *Context) *Response {
 		fmt.Fprintln(c.Response.HttpResponseWriter, c.RequestParamExists("param"))
+		return nil
 	})
 	hr = app.RegisterRoutes(gcr.GetRoutes(), hr)
 	s := httptest.NewServer(hr)
@@ -252,11 +256,13 @@ func TestGetHeader(t *testing.T) {
 	app := New()
 	hr := httprouter.New()
 	gcr := NewRouter()
-	gcr.Post("/pt", func(c *Context) {
+	gcr.Post("/pt", func(c *Context) *Response {
 		fmt.Fprintln(c.Response.HttpResponseWriter, c.GetHeader("headerkey"))
+		return nil
 	})
-	gcr.Get("/gt", func(c *Context) {
+	gcr.Get("/gt", func(c *Context) *Response {
 		fmt.Fprintln(c.Response.HttpResponseWriter, c.GetHeader("headerkey"))
+		return nil
 	})
 	hr = app.RegisterRoutes(gcr.GetRoutes(), hr)
 	s := httptest.NewServer(hr)
@@ -300,10 +306,11 @@ func TestGetUploadedFile(t *testing.T) {
 	app := New()
 	hr := httprouter.New()
 	gcr := NewRouter()
-	gcr.Post("/pt", func(c *Context) {
+	gcr.Post("/pt", func(c *Context) *Response {
 		uploadedFile := c.GetUploadedFile("myfile")
 		rs := fmt.Sprintf("file name: %v | size: %v", uploadedFile.Name, uploadedFile.Size)
 		fmt.Fprintln(c.Response.HttpResponseWriter, rs)
+		return nil
 	})
 
 	hr = app.RegisterRoutes(gcr.GetRoutes(), hr)

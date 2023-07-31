@@ -117,11 +117,11 @@ func (app *App) Run(router *httprouter.Router) {
 		}
 		CertFile := os.Getenv("App_CERT_FILE_PATH")
 		if CertFile == "" {
-			CertFile = "ssl/server.crt"
+			CertFile = "tls/server.crt"
 		}
 		KeyFile := os.Getenv("App_KEY_FILE_PATH")
 		if KeyFile == "" {
-			KeyFile = "ssl/server.key"
+			KeyFile = "tls/server.key"
 		}
 		certFilePath := filepath.Join(wd, CertFile)
 		KeyFilePath := filepath.Join(wd, KeyFile)

@@ -165,8 +165,7 @@ func (app *App) makeHTTPRouterHandlerFunc(hs []Handler) httprouter.Handle {
 			},
 			Response: &Response{
 				headers:            []header{},
-				textBody:           "",
-				jsonBody:           []byte(""),
+				body:               nil,
 				HttpResponseWriter: w,
 			},
 			logger:       loggr,
@@ -182,29 +181,19 @@ func (app *App) makeHTTPRouterHandlerFunc(hs []Handler) httprouter.Handle {
 		app.prepareChain(rhs)
 		app.t = 0
 		app.chain.execute(ctx)
-		for _, header := range ctx.Response.getHeaders() {
+		for _, header := range ctx.Response.headers {
 			w.Header().Add(header.key, header.val)
 		}
 		logger.CloseLogsFile()
-		if ctx.Response.getBody() != "" {
-			var ct string
-			if ctx.Response.getContentType() != "" {
-				ct = ctx.Response.getContentType()
-			} else {
-				ct = CONTENT_TYPE_HTML
-			}
-			w.Header().Add(CONTENT_TYPE, ct)
-			w.Write([]byte(ctx.Response.getBody()))
+		var ct string
+		if ctx.Response.contentType != "" {
+			ct = ctx.Response.contentType
+		} else {
+			ct = CONTENT_TYPE_HTML
 		}
-		if string(ctx.Response.getJsonBody()) != "" {
-			w.Header().Add(CONTENT_TYPE, CONTENT_TYPE_JSON)
-			code := ctx.Response.getStatusCode()
-			if code == 0 {
-				code = http.StatusOK
-			}
-			w.WriteHeader(code)
-			w.Write(ctx.Response.getJsonBody())
-		}
+		w.Header().Add(CONTENT_TYPE, ct)
+		w.Write(ctx.Response.body)
+
 		app.t = 0
 		ctx.Response.reset()
 		app.chain.reset()

@@ -11,8 +11,7 @@ import (
 
 type Response struct {
 	headers            []header
-	textBody           string
-	jsonBody           []byte
+	body               []byte
 	statusCode         int
 	contentType        string
 	HttpResponseWriter http.ResponseWriter
@@ -23,57 +22,62 @@ type header struct {
 	val string
 }
 
-func (rs *Response) Write(body interface{}) *Response {
-	if rs.textBody == "" {
-		rs.textBody = rs.castBasicVarsToString(body)
-	}
+// TODO add doc
+func (rs *Response) Any(body any) *Response {
+	rs.contentType = CONTENT_TYPE_HTML
+	rs.body = []byte(rs.castBasicVarsToString(body))
 	return rs
 }
 
-func (rs *Response) WriteJson(body []byte) *Response {
-	if string(rs.jsonBody) == "" {
-		rs.jsonBody = body
-	}
+// TODO add doc
+func (rs *Response) Byte(body []byte) *Response {
+	rs.contentType = CONTENT_TYPE_TEXT
+	rs.body = body
 	return rs
 }
 
+// TODO add doc
+func (rs *Response) Json(body string) *Response {
+	rs.contentType = CONTENT_TYPE_JSON
+	rs.body = []byte(body)
+	return rs
+}
+
+// TODO add doc
+func (rs *Response) Text(body string) *Response {
+	rs.contentType = CONTENT_TYPE_TEXT
+	rs.body = []byte(body)
+	return rs
+}
+
+// TODO add doc
+func (rs *Response) HTML(body string) *Response {
+	rs.contentType = CONTENT_TYPE_HTML
+	rs.body = []byte(body)
+	return rs
+}
+
+// TODO add doc
 func (rs *Response) SetStatusCode(code int) *Response {
 	rs.statusCode = code
 
 	return rs
 }
+
+// TODO add doc
 func (rs *Response) SetContentType(c string) *Response {
 	rs.contentType = c
 
 	return rs
 }
 
-func (rs *Response) getStatusCode() int {
-	return rs.statusCode
-}
-
-func (rs *Response) getContentType() string {
-	return rs.contentType
-}
-
-func (rs *Response) getBody() string {
-	return rs.textBody
-}
-
-func (rs *Response) getJsonBody() []byte {
-	return rs.jsonBody
-}
-
+// TODO add doc
 func (rs *Response) SetHeader(key string, val string) {
 	h := header{
 		key: key,
 		val: val,
 	}
 	rs.headers = append(rs.headers, h)
-}
-
-func (rs *Response) getHeaders() []header {
-	return rs.headers
 }
 
 func (rs *Response) castBasicVarsToString(data interface{}) string {
@@ -129,13 +133,12 @@ func (rs *Response) castBasicVarsToString(data interface{}) string {
 		boolVar := data.(bool)
 		return fmt.Sprintf("%v", boolVar)
 	default:
-		panic(fmt.Sprintf("unsupported data type %v!", dataType))
+		panic(fmt.Sprintf("unsupported response data type %v!", dataType))
 	}
 }
 
 func (rs *Response) reset() {
-	rs.textBody = ""
-	rs.jsonBody = []byte("")
+	rs.body = nil
 	rs.statusCode = http.StatusOK
-	rs.contentType = ""
+	rs.contentType = CONTENT_TYPE_HTML
 }

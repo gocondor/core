@@ -54,7 +54,7 @@ func TestMakeHTTPHandlerFunc(t *testing.T) {
 			f, _ := os.Create(tmpFile)
 			f.WriteString("DFT2V56H")
 			c.Response.SetHeader("header-key", "header-val")
-			return c.Response.Write("DFT2V56H")
+			return c.Response.Text("DFT2V56H")
 		},
 	}
 	h := app.makeHTTPRouterHandlerFunc(hs)
@@ -82,7 +82,7 @@ func TestMakeHTTPHandlerFuncVerifyJson(t *testing.T) {
 			f, _ := os.Create(tmpFile)
 			f.WriteString("DFT2V56H")
 			c.Response.SetHeader("header-key", "header-val")
-			return c.Response.WriteJson([]byte("{\"testKey\": \"testVal\"}"))
+			return c.Response.Json("{\"testKey\": \"testVal\"}")
 		},
 	}
 	h := app.makeHTTPRouterHandlerFunc(hs)
@@ -235,8 +235,7 @@ func makeCTX(t *testing.T) *Context {
 		},
 		Response: &Response{
 			headers:            []header{},
-			textBody:           "",
-			jsonBody:           []byte(""),
+			body:               nil,
 			HttpResponseWriter: httptest.NewRecorder(),
 		},
 		logger: logger.NewLogger(&logger.LogFileDriver{

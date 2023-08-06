@@ -28,8 +28,7 @@ func TestDebugAny(t *testing.T) {
 		},
 		Response: &Response{
 			headers:            []header{},
-			textBody:           "",
-			jsonBody:           []byte(""),
+			body:               nil,
 			HttpResponseWriter: w,
 		},
 		logger:       logger.NewLogger(&logger.LogNullDriver{}),
@@ -158,7 +157,7 @@ func TestGetPathParams(t *testing.T) {
 	h := a.makeHTTPRouterHandlerFunc([]Handler{
 		func(c *Context) *Response {
 			rsp := fmt.Sprintf("param1: %v | param2: %v", c.GetPathParam("param1"), c.GetPathParam("param2"))
-			return c.Response.Write(rsp)
+			return c.Response.Text(rsp)
 		},
 	})
 	h(w, r, pathParams)
@@ -505,8 +504,7 @@ func makeCTXLogTestCTX(t *testing.T, w http.ResponseWriter, r *http.Request, tmp
 		},
 		Response: &Response{
 			headers:            []header{},
-			textBody:           "",
-			jsonBody:           []byte(""),
+			body:               nil,
 			HttpResponseWriter: w,
 		},
 		logger:       logger.NewLogger(&logger.LogFileDriver{FilePath: tmpFilePath}),

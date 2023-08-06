@@ -8,9 +8,9 @@ import (
 func TestWrite(t *testing.T) {
 	res := Response{}
 	v := "test-text"
-	res.Write(v)
+	res.Any(v)
 
-	if res.getBody() != v {
+	if string(res.body) != v {
 		t.Errorf("failed writing text")
 	}
 }
@@ -18,9 +18,9 @@ func TestWrite(t *testing.T) {
 func TestWriteJson(t *testing.T) {
 	res := Response{}
 	j := "{\"name\": \"test\"}"
-	res.WriteJson([]byte(j))
+	res.Json(j)
 
-	if string(res.getJsonBody()) != j {
+	if string(res.body) != j {
 		t.Errorf("failed wrting jsom")
 	}
 }
@@ -29,7 +29,7 @@ func TestSetHeaders(t *testing.T) {
 	res := Response{}
 	res.SetHeader("testkey", "testval")
 
-	headers := res.getHeaders()
+	headers := res.headers
 	if len(headers) < 1 {
 		t.Errorf("testing set header failed")
 	}
@@ -37,19 +37,19 @@ func TestSetHeaders(t *testing.T) {
 
 func TestReset(t *testing.T) {
 	res := Response{}
-	res.Write("test text")
-	if res.getBody() == "" {
-		t.Errorf("expecting textBody to not be empty, found empty")
+	res.Any("test text")
+	if res.body == nil {
+		t.Errorf("expecting body to not be empty, found empty")
 	}
 	j := "{\"name\": \"test\"}"
-	res.WriteJson([]byte(j))
-	if string(res.getJsonBody()) == "" {
+	res.Json(j)
+	if string(res.body) == "" {
 		t.Errorf("expecting JsonBody to not be empty, found empty")
 	}
 
 	res.reset()
 
-	if !(res.getBody() == "" && string(res.getJsonBody()) == "") {
+	if !(res.body == nil && string(res.body) == "") {
 		t.Errorf("failed testing response reset()")
 	}
 }

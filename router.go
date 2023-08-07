@@ -5,9 +5,10 @@
 package core
 
 type Route struct {
-	Method   string
-	Path     string
-	Handlers []Handler
+	Method      string
+	Path        string
+	Handler     Handler
+	Middlewares []Middleware
 }
 
 type Router struct {
@@ -27,65 +28,72 @@ func ResolveRouter() *Router {
 	return router
 }
 
-func (r *Router) Get(path string, handlers ...Handler) *Router {
+func (r *Router) Get(path string, handler Handler, middlewares ...Middleware) *Router {
 	r.Routes = append(r.Routes, Route{
-		Method:   GET,
-		Path:     path,
-		Handlers: handlers,
+		Method:      GET,
+		Path:        path,
+		Handler:     handler,
+		Middlewares: middlewares,
 	})
 	return r
 }
 
-func (r *Router) Post(path string, handlers ...Handler) *Router {
+func (r *Router) Post(path string, handler Handler, middlewares ...Middleware) *Router {
 	r.Routes = append(r.Routes, Route{
-		Method:   POST,
-		Path:     path,
-		Handlers: handlers,
+		Method:      POST,
+		Path:        path,
+		Handler:     handler,
+		Middlewares: middlewares,
 	})
 	return r
 }
 
-func (r *Router) Delete(path string, handlers ...Handler) *Router {
+func (r *Router) Delete(path string, handler Handler, middlewares ...Middleware) *Router {
 	r.Routes = append(r.Routes, Route{
-		Method:   DELETE,
-		Path:     path,
-		Handlers: handlers,
+		Method:      DELETE,
+		Path:        path,
+		Handler:     handler,
+		Middlewares: middlewares,
 	})
 	return r
 }
 
-func (r *Router) Patch(path string, handlers ...Handler) *Router {
+func (r *Router) Patch(path string, handler Handler, middlewares ...Middleware) *Router {
 	r.Routes = append(r.Routes, Route{
-		Method:   PATCH,
-		Path:     path,
-		Handlers: handlers,
+		Method:      PATCH,
+		Path:        path,
+		Handler:     handler,
+		Middlewares: middlewares,
 	})
 	return r
 }
 
-func (r *Router) Put(path string, handlers ...Handler) *Router {
+func (r *Router) Put(path string, handler Handler, middlewares ...Middleware) *Router {
 	r.Routes = append(r.Routes, Route{
-		Method:   PUT,
-		Path:     path,
-		Handlers: handlers,
+		Method:      PUT,
+		Path:        path,
+		Handler:     handler,
+		Middlewares: middlewares,
 	})
 	return r
 }
 
-func (r *Router) Options(path string, handlers ...Handler) *Router {
+func (r *Router) Options(path string, handler Handler, middlewares ...Middleware) *Router {
 	r.Routes = append(r.Routes, Route{
-		Method:   OPTIONS,
-		Path:     path,
-		Handlers: handlers,
+		Method:      OPTIONS,
+		Path:        path,
+		Handler:     handler,
+		Middlewares: middlewares,
 	})
 	return r
 }
 
-func (r *Router) Head(path string, handlers ...Handler) *Router {
+func (r *Router) Head(path string, handler Handler, middlewares ...Middleware) *Router {
 	r.Routes = append(r.Routes, Route{
-		Method:   HEAD,
-		Path:     path,
-		Handlers: handlers,
+		Method:      HEAD,
+		Path:        path,
+		Handler:     handler,
+		Middlewares: middlewares,
 	})
 	return r
 }

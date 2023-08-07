@@ -160,10 +160,6 @@ func (c *Context) MoveFile(sourceFilePath string, destFolderPath string, newFile
 	return nil
 }
 
-func (c *Context) InterfaceToString(v interface{}) string {
-	return fmt.Sprintf("%v", v)
-}
-
 func (c *Context) MapToJson(v any) string {
 	r := reflect.ValueOf(v)
 	if r.Kind() != reflect.Map {

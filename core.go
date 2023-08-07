@@ -138,25 +138,25 @@ func (app *App) RegisterRoutes(routes []Route, router *httprouter.Router) *httpr
 	for _, route := range routes {
 		switch route.Method {
 		case GET:
-			router.GET(route.Path, app.makeHTTPRouterHandlerFunc(route.Handlers))
+			router.GET(route.Path, app.makeHTTPRouterHandlerFunc(route.Handler, route.Middlewares))
 		case POST:
-			router.POST(route.Path, app.makeHTTPRouterHandlerFunc(route.Handlers))
+			router.POST(route.Path, app.makeHTTPRouterHandlerFunc(route.Handler, route.Middlewares))
 		case DELETE:
-			router.DELETE(route.Path, app.makeHTTPRouterHandlerFunc(route.Handlers))
+			router.DELETE(route.Path, app.makeHTTPRouterHandlerFunc(route.Handler, route.Middlewares))
 		case PATCH:
-			router.PATCH(route.Path, app.makeHTTPRouterHandlerFunc(route.Handlers))
+			router.PATCH(route.Path, app.makeHTTPRouterHandlerFunc(route.Handler, route.Middlewares))
 		case PUT:
-			router.PUT(route.Path, app.makeHTTPRouterHandlerFunc(route.Handlers))
+			router.PUT(route.Path, app.makeHTTPRouterHandlerFunc(route.Handler, route.Middlewares))
 		case OPTIONS:
-			router.OPTIONS(route.Path, app.makeHTTPRouterHandlerFunc(route.Handlers))
+			router.OPTIONS(route.Path, app.makeHTTPRouterHandlerFunc(route.Handler, route.Middlewares))
 		case HEAD:
-			router.HEAD(route.Path, app.makeHTTPRouterHandlerFunc(route.Handlers))
+			router.HEAD(route.Path, app.makeHTTPRouterHandlerFunc(route.Handler, route.Middlewares))
 		}
 	}
 	return router
 }
 
-func (app *App) makeHTTPRouterHandlerFunc(hs []Handler) httprouter.Handle {
+func (app *App) makeHTTPRouterHandlerFunc(h Handler, ms []Middleware) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 		ctx := &Context{
 			Request: &Request{
@@ -164,9 +164,12 @@ func (app *App) makeHTTPRouterHandlerFunc(hs []Handler) httprouter.Handle {
 				httpPathParams: ps,
 			},
 			Response: &Response{
-				headers:            []header{},
-				body:               nil,
-				HttpResponseWriter: w,
+				headers:             []header{},
+				body:                nil,
+				contentType:         "",
+				overrideContentType: "",
+				HttpResponseWriter:  w,
+				isTerminated:        false,
 			},
 			logger:       loggr,
 			GetValidator: getValidator(),
@@ -177,7 +180,7 @@ func (app *App) makeHTTPRouterHandlerFunc(hs []Handler) httprouter.Handle {
 			GetMailer:    resolveMailer(),
 		}
 		ctx.prepare(ctx)
-		rhs := app.revHandlers(hs)
+		rhs := app.combHandlers(h, ms)
 		app.prepareChain(rhs)
 		app.t = 0
 		app.chain.execute(ctx)
@@ -186,7 +189,9 @@ func (app *App) makeHTTPRouterHandlerFunc(hs []Handler) httprouter.Handle {
 		}
 		logger.CloseLogsFile()
 		var ct string
-		if ctx.Response.contentType != "" {
+		if ctx.Response.overrideContentType != "" {
+			ct = ctx.Response.overrideContentType
+		} else if ctx.Response.contentType != "" {
 			ct = ctx.Response.contentType
 		} else {
 			ct = CONTENT_TYPE_HTML
@@ -237,7 +242,7 @@ var panicHandler = func(w http.ResponseWriter, r *http.Request, e interface{}) {
 	w.Write([]byte(res))
 }
 
-func UseMiddleware(mw func(c *Context) *Response) {
+func UseMiddleware(mw Middleware) {
 	ResolveMiddlewares().Attach(mw)
 }
 
@@ -245,19 +250,27 @@ func (app *App) Next(c *Context) {
 	app.t = app.t + 1
 	n := app.chain.getByIndex(app.t)
 	if n != nil {
-		n(c)
+		f, ok := n.(Middleware)
+		if ok {
+			f(c)
+		} else {
+			ff, ok := n.(Handler)
+			if ok {
+				ff(c)
+			}
+		}
 	}
 }
 
 type chain struct {
-	nodes []Handler
+	nodes []interface{}
 }
 
 func (cn *chain) reset() {
-	cn.nodes = []Handler{}
+	cn.nodes = []interface{}{}
 }
 
-func (c *chain) getByIndex(i int) Handler {
+func (c *chain) getByIndex(i int) interface{} {
 	for k := range c.nodes {
 		if k == i {
 			return c.nodes[i]
@@ -267,23 +280,34 @@ func (c *chain) getByIndex(i int) Handler {
 	return nil
 }
 
-func (app *App) prepareChain(hs []Handler) {
+func (app *App) prepareChain(hs []interface{}) {
 	mw := app.middlewares.GetMiddlewares()
-	mw = append(mw, hs...)
-	app.chain.nodes = append(app.chain.nodes, mw...)
+	for _, v := range mw {
+		app.chain.nodes = append(app.chain.nodes, v)
+	}
+	for _, v := range hs {
+		app.chain.nodes = append(app.chain.nodes, v)
+	}
 }
 
 func (cn *chain) execute(ctx *Context) {
-	if cn.getByIndex(0) != nil {
-		cn.getByIndex(0)(ctx)
+	i := cn.getByIndex(0)
+	if i != nil {
+		f, ok := i.(Middleware)
+		if ok {
+			f(ctx)
+		} else {
+			ff, ok := i.(Handler)
+			if ok {
+				ff(ctx)
+			}
+		}
 	}
 }
 
-func (app *App) revHandlers(hs []Handler) []Handler {
-	var rev []Handler
-	for i := range hs {
-		rev = append(rev, hs[(len(hs)-1)-i])
-	}
+func (app *App) combHandlers(h Handler, mw []Middleware) []interface{} {
+	var rev []interface{}
+	rev = append(rev, h)
 	return rev
 }
 

@@ -5,7 +5,7 @@
 package core
 
 type Middlewares struct {
-	middlewares []Handler
+	middlewares []Middleware
 }
 
 var m *Middlewares
@@ -19,17 +19,17 @@ func ResolveMiddlewares() *Middlewares {
 	return m
 }
 
-func (m *Middlewares) Attach(mw Handler) *Middlewares {
+func (m *Middlewares) Attach(mw Middleware) *Middlewares {
 	m.middlewares = append(m.middlewares, mw)
 
 	return m
 }
 
-func (m *Middlewares) GetMiddlewares() []Handler {
+func (m *Middlewares) GetMiddlewares() []Middleware {
 	return m.middlewares
 }
 
-func (m *Middlewares) getByIndex(i int) Handler {
+func (m *Middlewares) getByIndex(i int) Middleware {
 	for k := range m.middlewares {
 		if k == i {
 			return m.middlewares[i]

@@ -10,11 +10,13 @@ import (
 )
 
 type Response struct {
-	headers            []header
-	body               []byte
-	statusCode         int
-	contentType        string
-	HttpResponseWriter http.ResponseWriter
+	headers             []header
+	body                []byte
+	statusCode          int
+	contentType         string
+	overrideContentType string
+	isTerminated        bool
+	HttpResponseWriter  http.ResponseWriter
 }
 
 type header struct {
@@ -24,60 +26,73 @@ type header struct {
 
 // TODO add doc
 func (rs *Response) Any(body any) *Response {
-	rs.contentType = CONTENT_TYPE_HTML
-	rs.body = []byte(rs.castBasicVarsToString(body))
-	return rs
-}
+	if rs.isTerminated == false {
+		rs.contentType = CONTENT_TYPE_HTML
+		rs.body = []byte(rs.castBasicVarsToString(body))
+	}
 
-// TODO add doc
-func (rs *Response) Byte(body []byte) *Response {
-	rs.contentType = CONTENT_TYPE_TEXT
-	rs.body = body
 	return rs
 }
 
 // TODO add doc
 func (rs *Response) Json(body string) *Response {
-	rs.contentType = CONTENT_TYPE_JSON
-	rs.body = []byte(body)
+	if rs.isTerminated == false {
+		rs.contentType = CONTENT_TYPE_JSON
+		rs.body = []byte(body)
+	}
 	return rs
 }
 
 // TODO add doc
 func (rs *Response) Text(body string) *Response {
-	rs.contentType = CONTENT_TYPE_TEXT
-	rs.body = []byte(body)
+	if rs.isTerminated == false {
+		rs.contentType = CONTENT_TYPE_TEXT
+		rs.body = []byte(body)
+	}
 	return rs
 }
 
 // TODO add doc
 func (rs *Response) HTML(body string) *Response {
-	rs.contentType = CONTENT_TYPE_HTML
-	rs.body = []byte(body)
+	if rs.isTerminated == false {
+		rs.contentType = CONTENT_TYPE_HTML
+		rs.body = []byte(body)
+	}
 	return rs
 }
 
 // TODO add doc
 func (rs *Response) SetStatusCode(code int) *Response {
-	rs.statusCode = code
+	if rs.isTerminated == false {
+		rs.statusCode = code
+	}
 
 	return rs
 }
 
 // TODO add doc
 func (rs *Response) SetContentType(c string) *Response {
-	rs.contentType = c
+	if rs.isTerminated == false {
+		rs.overrideContentType = c
+	}
 
 	return rs
 }
 
 // TODO add doc
-func (rs *Response) SetHeader(key string, val string) {
-	h := header{
-		key: key,
-		val: val,
+func (rs *Response) SetHeader(key string, val string) *Response {
+	if rs.isTerminated == false {
+		h := header{
+			key: key,
+			val: val,
+		}
+		rs.headers = append(rs.headers, h)
 	}
-	rs.headers = append(rs.headers, h)
+	return rs
+}
+
+func (rs *Response) ForceSendResponse() {
+	rs.isTerminated = true
 }
 
 func (rs *Response) castBasicVarsToString(data interface{}) string {
@@ -141,4 +156,6 @@ func (rs *Response) reset() {
 	rs.body = nil
 	rs.statusCode = http.StatusOK
 	rs.contentType = CONTENT_TYPE_HTML
+	rs.overrideContentType = ""
+	rs.isTerminated = false
 }

@@ -156,7 +156,7 @@ func getRule(rule string) (validation.Rule, error) {
 		return is.Host, nil
 	case "port":
 		return is.Port, nil
-	case "mongoDbId":
+	case "mongoID":
 		return is.MongoID, nil
 	case "latitude":
 		return is.Latitude, nil

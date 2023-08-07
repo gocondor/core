@@ -27,10 +27,9 @@ func TestResloveMiddleWares(t *testing.T) {
 
 func TestAttach(t *testing.T) {
 	mw := NewMiddlewares()
-	tmw := func(c *Context) *Response {
+	tmw := Middleware(func(c *Context) {
 		c.LogInfo("Testing!")
-		return nil
-	}
+	})
 	mw.Attach(tmw)
 	mws := mw.getByIndex(0)
 	if reflect.ValueOf(tmw).Pointer() != reflect.ValueOf(mws).Pointer() {
@@ -40,14 +39,12 @@ func TestAttach(t *testing.T) {
 
 func TestGetMiddleWares(t *testing.T) {
 	mw := NewMiddlewares()
-	t1 := func(c *Context) *Response {
+	t1 := Middleware(func(c *Context) {
 		c.LogInfo("testing1!")
-		return nil
-	}
-	t2 := func(c *Context) *Response {
+	})
+	t2 := Middleware(func(c *Context) {
 		c.LogInfo("testing2!")
-		return nil
-	}
+	})
 	mw.Attach(t1)
 	mw.Attach(t2)
 	if len(mw.GetMiddlewares()) != 2 {
@@ -57,10 +54,9 @@ func TestGetMiddleWares(t *testing.T) {
 
 func TestMiddlewareGetByIndex(t *testing.T) {
 	mw := NewMiddlewares()
-	t1 := func(c *Context) *Response {
+	t1 := Middleware(func(c *Context) {
 		c.LogInfo("testing!")
-		return nil
-	}
+	})
 	mw.Attach(t1)
 	if reflect.ValueOf(mw.getByIndex(0)).Pointer() != reflect.ValueOf(t1).Pointer() {
 		t.Errorf("failed testing get by index")

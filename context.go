@@ -130,7 +130,7 @@ func (c *Context) MoveFile(sourceFilePath string, destFolderPath string, newFile
 		return err
 	}
 	if !srcFileInfo.Mode().IsRegular() {
-		return errors.New("can not copy file, not in a regular mode")
+		return errors.New("can not move file, not in a regular mode")
 	}
 	srcFile, err := os.Open(sourceFilePath)
 	if err != nil {
@@ -148,6 +148,49 @@ func (c *Context) MoveFile(sourceFilePath string, destFolderPath string, newFile
 		n, err := srcFile.Read(buff)
 		if err != nil && err != io.EOF {
 			panic("error moving file")
+		}
+		if n == 0 {
+			break
+		}
+		_, err = destFile.Write(buff)
+		if err != nil {
+			return err
+		}
+	}
+
+	err = os.Remove(sourceFilePath)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// TODO unittest
+func (c *Context) CopyFile(sourceFilePath string, destFolderPath string, newFileName string) error {
+	os.MkdirAll(destFolderPath, 644)
+	srcFileInfo, err := os.Stat(sourceFilePath)
+	if err != nil {
+		return err
+	}
+	if !srcFileInfo.Mode().IsRegular() {
+		return errors.New("can not copy file, not in a regular mode")
+	}
+	srcFile, err := os.Open(sourceFilePath)
+	if err != nil {
+		return err
+	}
+	defer srcFile.Close()
+	destFilePath := filepath.Join(destFolderPath, newFileName)
+	destFile, err := os.OpenFile(destFilePath, os.O_CREATE|os.O_RDWR|os.O_APPEND, 744)
+	if err != nil {
+		return err
+	}
+	defer destFile.Close()
+	buff := make([]byte, 100)
+	for {
+		n, err := srcFile.Read(buff)
+		if err != nil && err != io.EOF {
+			panic("error coping file")
 		}
 		if n == 0 {
 			break

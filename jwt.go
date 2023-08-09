@@ -72,17 +72,17 @@ func (j *JWT) DecodeToken(token string) (payload map[string]interface{}, err err
 	return payload, nil
 }
 
-func (j *JWT) HasExpired(token string) error {
+func (j *JWT) HasExpired(token string) (bool, error) {
 	_, err := jwt.ParseWithClaims(token, &claims{}, func(token *jwt.Token) (interface{}, error) {
 		return j.signingKey, nil
 	})
 	if err != nil {
 		if errors.Is(err, jwt.ErrTokenExpired) {
-			return errors.New("token has expired")
+			return true, nil
 		}
-		return err
+		return true, err
 	}
-	return nil
+	return false, nil
 }
 
 func mapClaims(data map[string]interface{}, expiresAt time.Time) (jwt.Claims, error) {

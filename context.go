@@ -142,7 +142,6 @@ func (c *Context) MoveFile(sourceFilePath string, destFolderPath string, newFile
 	if err != nil {
 		return err
 	}
-	defer destFile.Close()
 	buff := make([]byte, 1024)
 	for {
 		n, err := srcFile.Read(buff)
@@ -157,7 +156,8 @@ func (c *Context) MoveFile(sourceFilePath string, destFolderPath string, newFile
 			return err
 		}
 	}
-
+	destFile.Close()
+	os.Chmod(filepath.Join(destFolderPath, newFileName), 0666)
 	err = os.Remove(sourceFilePath)
 	if err != nil {
 		return err

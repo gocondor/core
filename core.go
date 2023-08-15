@@ -409,8 +409,8 @@ func getJWT() func() *JWT {
 		}
 		lifetime := int(lifetime64)
 		return newJWT(JWTOptions{
-			SigningKey: secret,
-			Lifetime:   lifetime,
+			SigningKey:      secret,
+			LifetimeMinutes: lifetime,
 		})
 	}
 	return f

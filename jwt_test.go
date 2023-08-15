@@ -8,8 +8,8 @@ import (
 
 func TestNewJWT(t *testing.T) {
 	j := newJWT(JWTOptions{
-		SigningKey: "testsigning",
-		Lifetime:   2,
+		SigningKey:      "testsigning",
+		LifetimeMinutes: 2,
 	})
 
 	if fmt.Sprintf("%T", j) != "*core.JWT" {
@@ -35,10 +35,10 @@ func TestGenerateToken(t *testing.T) {
 	}
 	d, err := j.DecodeToken(token)
 	if err != nil {
-		t.Errorf("error testing generate jwt token")
+		t.Errorf("error testing generate jwt token: %v", err.Error())
 	}
 	if d["testKey"] != "testVal" {
-		t.Errorf("error testing generate jwt token")
+		t.Errorf("error testing generate jwt token: %v", err.Error())
 	}
 }
 
@@ -72,9 +72,12 @@ func TestDecodeToken(t *testing.T) {
 func TestHasExpired(t *testing.T) {
 	expiredToken := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJKIjoiZXlKMFpYTjBTMlY1SWpvaWRHVnpkRlpoYkNKOSIsImV4cCI6MTY4NDkyMzQwOX0.v2aM9OTDJ48L4KnGjfLH3JAFQw4Gkgj5z7cA7txPNag"
 	j := initiateJWTHelper(t)
-	err := j.HasExpired(expiredToken)
-	if err == nil {
-		t.Errorf("failed test decode token")
+	tokenHasExpired, err := j.HasExpired(expiredToken)
+	if !tokenHasExpired {
+		t.Errorf("failed test token has expired check")
+	}
+	if tokenHasExpired && err != nil {
+		t.Errorf("failed test decode token: %v", err.Error())
 	}
 	token, err := j.GenerateToken(map[string]interface{}{
 		"testKey": "testVal",
@@ -82,7 +85,7 @@ func TestHasExpired(t *testing.T) {
 	if err != nil || token == "" {
 		t.Errorf("failed testing decode token")
 	}
-	err = j.HasExpired(token)
+	_, err = j.HasExpired(token)
 	if err != nil {
 		t.Errorf("error testing decode jwt token")
 	}
@@ -104,8 +107,8 @@ func TestMapClaims(t *testing.T) {
 func initiateJWTHelper(t *testing.T) *JWT {
 	t.Helper()
 	j := newJWT(JWTOptions{
-		SigningKey: "testsigning",
-		Lifetime:   2,
+		SigningKey:      "testsigning",
+		LifetimeMinutes: 2,
 	})
 	return j
 }

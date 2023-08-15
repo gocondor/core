@@ -124,9 +124,10 @@ func (c *Context) GetUploadedFile(name string) *UploadedFileInfo {
 }
 
 func (c *Context) MoveFile(sourceFilePath string, destFolderPath string, newFileName string) error {
-	os.MkdirAll(destFolderPath, 644)
+	os.MkdirAll(destFolderPath, 666)
 	srcFileInfo, err := os.Stat(sourceFilePath)
 	if err != nil {
+		fmt.Println("got err1")
 		return err
 	}
 	if !srcFileInfo.Mode().IsRegular() {
@@ -134,16 +135,19 @@ func (c *Context) MoveFile(sourceFilePath string, destFolderPath string, newFile
 	}
 	srcFile, err := os.Open(sourceFilePath)
 	if err != nil {
+		fmt.Println("got err2")
 		return err
 	}
 	defer srcFile.Close()
 	destFilePath := filepath.Join(destFolderPath, newFileName)
-	destFile, err := os.OpenFile(destFilePath, os.O_CREATE|os.O_RDWR|os.O_APPEND, 744)
+	destFile, err := os.OpenFile(destFilePath, os.O_CREATE|os.O_RDWR, 777)
+	fmt.Println(destFilePath)
 	if err != nil {
+		fmt.Println("got err3")
 		return err
 	}
 	defer destFile.Close()
-	buff := make([]byte, 100)
+	buff := make([]byte, 1024)
 	for {
 		n, err := srcFile.Read(buff)
 		if err != nil && err != io.EOF {
@@ -152,8 +156,9 @@ func (c *Context) MoveFile(sourceFilePath string, destFolderPath string, newFile
 		if n == 0 {
 			break
 		}
-		_, err = destFile.Write(buff)
+		_, err = destFile.Write(buff[:n])
 		if err != nil {
+			fmt.Println("got err4")
 			return err
 		}
 	}

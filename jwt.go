@@ -13,17 +13,17 @@ type JWT struct {
 	expiresAt  time.Time
 }
 type JWTOptions struct {
-	SigningKey string
-	Lifetime   int
+	SigningKey      string
+	LifetimeMinutes int
 }
 
 var j *JWT
 
 func newJWT(opts JWTOptions) *JWT {
-	d := time.Duration(opts.Lifetime)
+	d := time.Duration(opts.LifetimeMinutes)
 	j = &JWT{
 		signingKey: []byte(opts.SigningKey),
-		expiresAt:  time.Now().Add(d * time.Hour),
+		expiresAt:  time.Now().Add(d * time.Minute),
 	}
 	return j
 }

@@ -10,6 +10,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 
@@ -356,15 +357,21 @@ func TestGetUploadedFile(t *testing.T) {
 
 func TestMoveFile(t *testing.T) {
 	pwd, _ := os.Getwd()
-	tmpDir := filepath.Join(pwd, "/testingdata/tmp")
+	var tmpDir string
+	if runtime.GOOS == "linux" {
+		tmpDir = t.TempDir()
+	} else {
+		tmpDir = filepath.Join(pwd, "/testingdata/tmp")
+	}
+	fi, err := os.Stat(filepath.Join("./testingdata", "totestmovefile.md"))
+	if err != nil {
+		t.Errorf("failed test move file: %v", err.Error())
+	}
+
 	c := makeCTX(t)
-	err := c.MoveFile("./testingdata/totestmovefile.md", tmpDir, "totestmovefile.md")
+	err = c.MoveFile("./testingdata/totestmovefile.md", tmpDir, "totestmovefile.md")
 	if err != nil {
 		t.Error(err.Error())
-	}
-	fi, err := os.Stat(filepath.Join(tmpDir, "totestmovefile.md"))
-	if err != nil {
-		t.Errorf("failed test move file")
 	}
 	if fi.Name() != "totestmovefile.md" {
 		t.Errorf("failed test move file")

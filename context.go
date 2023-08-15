@@ -127,7 +127,6 @@ func (c *Context) MoveFile(sourceFilePath string, destFolderPath string, newFile
 	os.MkdirAll(destFolderPath, 666)
 	srcFileInfo, err := os.Stat(sourceFilePath)
 	if err != nil {
-		fmt.Println("got err1")
 		return err
 	}
 	if !srcFileInfo.Mode().IsRegular() {
@@ -135,15 +134,12 @@ func (c *Context) MoveFile(sourceFilePath string, destFolderPath string, newFile
 	}
 	srcFile, err := os.Open(sourceFilePath)
 	if err != nil {
-		fmt.Println("got err2")
 		return err
 	}
 	defer srcFile.Close()
 	destFilePath := filepath.Join(destFolderPath, newFileName)
-	destFile, err := os.OpenFile(destFilePath, os.O_CREATE|os.O_RDWR, 777)
-	fmt.Println(destFilePath)
+	destFile, err := os.Create(destFilePath)
 	if err != nil {
-		fmt.Println("got err3")
 		return err
 	}
 	defer destFile.Close()
@@ -158,7 +154,6 @@ func (c *Context) MoveFile(sourceFilePath string, destFolderPath string, newFile
 		}
 		_, err = destFile.Write(buff[:n])
 		if err != nil {
-			fmt.Println("got err4")
 			return err
 		}
 	}

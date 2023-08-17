@@ -21,15 +21,16 @@ import (
 )
 
 type Context struct {
-	Request      *Request
-	Response     *Response
-	logger       *logger.Logger
-	GetValidator func() *Validator
-	GetJWT       func() *JWT
-	GetGorm      func() *gorm.DB
-	GetCache     func() *Cache
-	GetHashing   func() *Hashing
-	GetMailer    func() *Mailer
+	Request          *Request
+	Response         *Response
+	logger           *logger.Logger
+	GetValidator     func() *Validator
+	GetJWT           func() *JWT
+	GetGorm          func() *gorm.DB
+	GetCache         func() *Cache
+	GetHashing       func() *Hashing
+	GetMailer        func() *Mailer
+	GetEventsManager func() *EventsManager
 }
 
 // TODO enhance

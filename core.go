@@ -66,8 +66,7 @@ func (app *App) SetLogsDriver(d logger.LogsDriver) {
 
 func (app *App) Bootstrap() {
 	NewRouter()
-	// database.New()
-	// cache.New(app.Features.Cache)
+	NewEventsManager()
 	loggr = logger.NewLogger(logsDriver)
 }
 
@@ -171,13 +170,14 @@ func (app *App) makeHTTPRouterHandlerFunc(h Handler, ms []Middleware) httprouter
 				HttpResponseWriter:  w,
 				isTerminated:        false,
 			},
-			logger:       loggr,
-			GetValidator: getValidator(),
-			GetJWT:       getJWT(),
-			GetGorm:      GetGormFunc(),
-			GetCache:     resolveCache(),
-			GetHashing:   resloveHashing(),
-			GetMailer:    resolveMailer(),
+			logger:           loggr,
+			GetValidator:     getValidator(),
+			GetJWT:           getJWT(),
+			GetGorm:          GetGormFunc(),
+			GetCache:         resolveCache(),
+			GetHashing:       resloveHashing(),
+			GetMailer:        resolveMailer(),
+			GetEventsManager: resolveEventsManager(),
 		}
 		ctx.prepare(ctx)
 		rhs := app.combHandlers(h, ms)
@@ -197,6 +197,7 @@ func (app *App) makeHTTPRouterHandlerFunc(h Handler, ms []Middleware) httprouter
 			ct = CONTENT_TYPE_HTML
 		}
 		w.Header().Add(CONTENT_TYPE, ct)
+		ResolveEventsManager().setContext(ctx).executeEventsJobs()
 		w.Write(ctx.Response.body)
 
 		app.t = 0
@@ -454,6 +455,13 @@ func resolveMailer() func() *Mailer {
 		}
 		mailer = m
 		return mailer
+	}
+	return f
+}
+
+func resolveEventsManager() func() *EventsManager {
+	f := func() *EventsManager {
+		return ResolveEventsManager()
 	}
 	return f
 }

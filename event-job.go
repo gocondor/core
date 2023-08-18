@@ -1,3 +1,3 @@
 package core
 
-type EventJob func(event *Event, c *Context)
+type EventJob func(event *Event, requestContext *Context)

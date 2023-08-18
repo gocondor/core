@@ -65,7 +65,7 @@ func TestLogInfo(t *testing.T) {
 	c := makeCTXLogTestCTX(t, w, r, tmpF)
 	h := func(c *Context) func(w http.ResponseWriter, r *http.Request) {
 		return func(w http.ResponseWriter, r *http.Request) {
-			c.LogInfo(msg)
+			c.GetLogger().Info(msg)
 		}
 	}(c)
 	h(w, r)
@@ -86,7 +86,7 @@ func TestLogWarning(t *testing.T) {
 	c := makeCTXLogTestCTX(t, w, r, tmpF)
 	h := func(c *Context) func(w http.ResponseWriter, r *http.Request) {
 		return func(w http.ResponseWriter, r *http.Request) {
-			c.LogWarning(msg)
+			c.GetLogger().Warning(msg)
 		}
 	}(c)
 	h(w, r)
@@ -107,7 +107,7 @@ func TestLogDebug(t *testing.T) {
 	c := makeCTXLogTestCTX(t, w, r, tmpF)
 	h := func(c *Context) func(w http.ResponseWriter, r *http.Request) {
 		return func(w http.ResponseWriter, r *http.Request) {
-			c.LogDebug(msg)
+			c.GetLogger().Debug(msg)
 		}
 	}(c)
 	h(w, r)
@@ -128,7 +128,7 @@ func TestLogError(t *testing.T) {
 	c := makeCTXLogTestCTX(t, w, r, tmpF)
 	h := func(c *Context) func(w http.ResponseWriter, r *http.Request) {
 		return func(w http.ResponseWriter, r *http.Request) {
-			c.LogError(msg)
+			c.GetLogger().Error(msg)
 		}
 	}(c)
 	h(w, r)
@@ -142,6 +142,7 @@ func TestLogError(t *testing.T) {
 }
 
 func TestGetPathParams(t *testing.T) {
+	NewEventsManager() //TODO removing require refactoring makeHTTPRouterHandlerFunc()
 	r := httptest.NewRequest(GET, LOCALHOST, nil)
 	w := httptest.NewRecorder()
 	pathParams := httprouter.Params{
@@ -517,8 +518,10 @@ func makeCTXLogTestCTX(t *testing.T, w http.ResponseWriter, r *http.Request, tmp
 			body:               nil,
 			HttpResponseWriter: w,
 		},
-		logger:       logger.NewLogger(&logger.LogFileDriver{FilePath: tmpFilePath}),
 		GetValidator: nil,
 		GetJWT:       nil,
+		GetLogger: func() *logger.Logger {
+			return logger.NewLogger(logger.LogFileDriver{FilePath: tmpFilePath})
+		},
 	}
 }

@@ -32,11 +32,11 @@ type LogFileDriver struct {
 
 type LogNullDriver struct{}
 
-func (n *LogNullDriver) GetTarget() interface{} {
+func (n LogNullDriver) GetTarget() interface{} {
 	return nil
 }
 
-func (f *LogFileDriver) GetTarget() interface{} {
+func (f LogFileDriver) GetTarget() interface{} {
 	return f.FilePath
 }
 

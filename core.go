@@ -23,8 +23,8 @@ import (
 	"gorm.io/gorm"
 )
 
-var logsDriver logger.LogsDriver
 var loggr *logger.Logger
+var logsDriver *logger.LogsDriver
 var requestC RequestConfig
 var jwtC JWTConfig
 var gormC GormConfig
@@ -61,13 +61,13 @@ func ResolveApp() *App {
 }
 
 func (app *App) SetLogsDriver(d logger.LogsDriver) {
-	logsDriver = d
+	logsDriver = &d
 }
 
 func (app *App) Bootstrap() {
+	loggr = logger.NewLogger(*logsDriver)
 	NewRouter()
 	NewEventsManager()
-	loggr = logger.NewLogger(logsDriver)
 }
 
 func (app *App) Run(router *httprouter.Router) {
@@ -170,7 +170,6 @@ func (app *App) makeHTTPRouterHandlerFunc(h Handler, ms []Middleware) httprouter
 				HttpResponseWriter:  w,
 				isTerminated:        false,
 			},
-			logger:           loggr,
 			GetValidator:     getValidator(),
 			GetJWT:           getJWT(),
 			GetGorm:          GetGormFunc(),
@@ -178,6 +177,7 @@ func (app *App) makeHTTPRouterHandlerFunc(h Handler, ms []Middleware) httprouter
 			GetHashing:       resloveHashing(),
 			GetMailer:        resolveMailer(),
 			GetEventsManager: resolveEventsManager(),
+			GetLogger:        resolveLogger(),
 		}
 		ctx.prepare(ctx)
 		rhs := app.combHandlers(h, ms)
@@ -462,6 +462,13 @@ func resolveMailer() func() *Mailer {
 func resolveEventsManager() func() *EventsManager {
 	f := func() *EventsManager {
 		return ResolveEventsManager()
+	}
+	return f
+}
+
+func resolveLogger() func() *logger.Logger {
+	f := func() *logger.Logger {
+		return loggr
 	}
 	return f
 }

@@ -31,6 +31,7 @@ type Context struct {
 	GetHashing       func() *Hashing
 	GetMailer        func() *Mailer
 	GetEventsManager func() *EventsManager
+	GetLogger        func() *logger.Logger
 }
 
 // TODO enhance
@@ -52,22 +53,6 @@ func (c *Context) Next() {
 
 func (c *Context) prepare(ctx *Context) {
 	ctx.Request.HttpRequest.ParseMultipartForm(int64(app.Config.Request.MaxUploadFileSize))
-}
-
-func (c *Context) LogInfo(msg interface{}) {
-	logger.ResolveLogger().Info(msg)
-}
-
-func (c *Context) LogError(msg interface{}) {
-	logger.ResolveLogger().Error(msg)
-}
-
-func (c *Context) LogWarning(msg interface{}) {
-	logger.ResolveLogger().Warning(msg)
-}
-
-func (c *Context) LogDebug(msg interface{}) {
-	logger.ResolveLogger().Debug(msg)
 }
 
 func (c *Context) GetPathParam(key string) interface{} {

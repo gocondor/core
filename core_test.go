@@ -105,7 +105,7 @@ func TestMakeHTTPHandlerFuncVerifyJson(t *testing.T) {
 
 func TestMethodNotAllowedHandler(t *testing.T) {
 	app := createNewApp(t)
-	app.SetLogsDriver(&logger.LogNullDriver{})
+	app.SetLogsDriver(logger.LogNullDriver{})
 	app.Bootstrap()
 	m := &methodNotAllowed{}
 	r := httptest.NewRequest(GET, LOCALHOST, nil)
@@ -131,7 +131,7 @@ func TestNotFoundHandler(t *testing.T) {
 
 func TestUseMiddleware(t *testing.T) {
 	app := createNewApp(t)
-	UseMiddleware(Middleware(func(c *Context) { c.LogInfo("Testing!") }))
+	UseMiddleware(Middleware(func(c *Context) { c.GetLogger().Info("Testing!") }))
 	if len(app.middlewares.GetMiddlewares()) != 1 {
 		t.Errorf("failed testing use middleware")
 	}
@@ -139,8 +139,8 @@ func TestUseMiddleware(t *testing.T) {
 
 func TestChainReset(t *testing.T) {
 	c := &chain{}
-	c.nodes = append(c.nodes, Middleware(func(c *Context) { c.LogInfo("Testing1!") }))
-	c.nodes = append(c.nodes, Middleware(func(c *Context) { c.LogInfo("Testing2!") }))
+	c.nodes = append(c.nodes, Middleware(func(c *Context) { c.GetLogger().Info("Testing1!") }))
+	c.nodes = append(c.nodes, Middleware(func(c *Context) { c.GetLogger().Info("Testing2!") }))
 
 	c.reset()
 	if len(c.nodes) != 0 {
@@ -172,7 +172,7 @@ func TestChainGetByIndex(t *testing.T) {
 	c := &chain{}
 	tf := filepath.Join(t.TempDir(), uuid.NewString())
 	var hs []interface{}
-	hs = append(hs, Middleware(func(c *Context) { c.LogInfo("testing!") }))
+	hs = append(hs, Middleware(func(c *Context) { c.GetLogger().Info("testing!") }))
 	hs = append(hs, Middleware(func(c *Context) {
 		f, _ := os.Create(tf)
 		f.WriteString("DFT2V56H")
@@ -191,10 +191,10 @@ func TestChainGetByIndex(t *testing.T) {
 
 func TestPrepareChain(t *testing.T) {
 	app := createNewApp(t)
-	UseMiddleware(Middleware(func(c *Context) { c.LogInfo("Testing!") }))
+	UseMiddleware(Middleware(func(c *Context) { c.GetLogger().Info("Testing!") }))
 	var hs []interface{}
-	hs = append(hs, Middleware(func(c *Context) { c.LogInfo("testing1!") }))
-	hs = append(hs, Middleware(func(c *Context) { c.LogInfo("testing2!") }))
+	hs = append(hs, Middleware(func(c *Context) { c.GetLogger().Info("testing1!") }))
+	hs = append(hs, Middleware(func(c *Context) { c.GetLogger().Info("testing2!") }))
 	app.prepareChain(hs)
 	if len(app.chain.nodes) != 3 {
 		t.Errorf("failed preparing chain")
@@ -244,8 +244,8 @@ func makeCTX(t *testing.T) *Context {
 
 func TestcombHndlers(t *testing.T) {
 	app := createNewApp(t)
-	t1 := Handler(func(c *Context) *Response { c.LogInfo("Testing1!"); return nil })
-	t2 := Middleware(func(c *Context) { c.LogInfo("Testing2!") })
+	t1 := Handler(func(c *Context) *Response { c.GetLogger().Info("Testing1!"); return nil })
+	t2 := Middleware(func(c *Context) { c.GetLogger().Info("Testing2!") })
 
 	mw := []Middleware{t2}
 	comb := app.combHandlers(t1, mw)

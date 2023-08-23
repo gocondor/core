@@ -12,7 +12,6 @@ import (
 
 func TestNewEventsManager(t *testing.T) {
 	m := NewEventsManager()
-
 	if fmt.Sprintf("%T", m) != "*core.EventsManager" {
 		t.Errorf("failed testing new events manager")
 	}
@@ -20,7 +19,7 @@ func TestNewEventsManager(t *testing.T) {
 
 func TestResolveEventsManager(t *testing.T) {
 	NewEventsManager()
-	m := resolveEventsManager()
+	m := ResolveEventsManager()
 	if fmt.Sprintf("%T", m) != "*core.EventsManager" {
 		t.Errorf("failed testing new events manager")
 	}

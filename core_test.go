@@ -223,7 +223,6 @@ func TestChainExecute(t *testing.T) {
 
 func makeCTX(t *testing.T) *Context {
 	t.Helper()
-	lgsPath := filepath.Join(t.TempDir(), uuid.NewString())
 	return &Context{
 		Request: &Request{
 			HttpRequest:    httptest.NewRequest(GET, LOCALHOST, nil),
@@ -234,9 +233,6 @@ func makeCTX(t *testing.T) *Context {
 			body:               nil,
 			HttpResponseWriter: httptest.NewRecorder(),
 		},
-		logger: logger.NewLogger(&logger.LogFileDriver{
-			FilePath: lgsPath,
-		}),
 		GetValidator: nil,
 		GetJWT:       nil,
 	}

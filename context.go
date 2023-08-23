@@ -23,7 +23,6 @@ import (
 type Context struct {
 	Request          *Request
 	Response         *Response
-	logger           *logger.Logger
 	GetValidator     func() *Validator
 	GetJWT           func() *JWT
 	GetGorm          func() *gorm.DB

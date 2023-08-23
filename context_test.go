@@ -32,7 +32,6 @@ func TestDebugAny(t *testing.T) {
 			body:               nil,
 			HttpResponseWriter: w,
 		},
-		logger:       logger.NewLogger(&logger.LogNullDriver{}),
 		GetValidator: nil,
 		GetJWT:       nil,
 	}

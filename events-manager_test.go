@@ -5,6 +5,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 
 	"github.com/google/uuid"
@@ -29,9 +30,15 @@ func TestEvents(t *testing.T) {
 	pwd, _ := os.Getwd()
 	const eventName1 string = "test-event-name1"
 	const eventName2 string = "test-event-name2"
-	tmpFile1 := filepath.Join(pwd, "/testingdata/tmp", uuid.NewString())
-	tmpFile2 := filepath.Join(pwd, "/testingdata/tmp", uuid.NewString())
-	tmpFile3 := filepath.Join(pwd, "/testingdata/tmp", uuid.NewString())
+	var tmpDir string
+	if runtime.GOOS == "linux" {
+		tmpDir = t.TempDir()
+	} else {
+		tmpDir = filepath.Join(pwd, "/testingdata/tmp")
+	}
+	tmpFile1 := filepath.Join(tmpDir, uuid.NewString())
+	tmpFile2 := filepath.Join(tmpDir, uuid.NewString())
+	tmpFile3 := filepath.Join(tmpDir, uuid.NewString())
 	m := NewEventsManager()
 	m.Register(eventName1, func(event *Event, requestContext *Context) {
 		os.Create(tmpFile1)

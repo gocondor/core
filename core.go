@@ -197,7 +197,7 @@ func (app *App) makeHTTPRouterHandlerFunc(h Handler, ms []Middleware) httprouter
 			ct = CONTENT_TYPE_HTML
 		}
 		w.Header().Add(CONTENT_TYPE, ct)
-		ResolveEventsManager().setContext(ctx).executeEventsJobs()
+		ResolveEventsManager().setContext(ctx).processFiredEvents()
 		w.Write(ctx.Response.body)
 
 		app.t = 0

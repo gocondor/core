@@ -6,12 +6,8 @@ import (
 )
 
 type EventsManager struct {
-	eventsJobsList map[string]JobsAndPayloadBag
-}
-
-type JobsAndPayloadBag struct {
-	eventJobs []EventJob
-	payload   map[string]interface{}
+	eventsJobsList map[string][]EventJob
+	firedEvents    []*Event
 }
 
 var manager *EventsManager
@@ -19,7 +15,7 @@ var rqc *Context
 
 func NewEventsManager() *EventsManager {
 	manager = &EventsManager{
-		eventsJobsList: map[string]JobsAndPayloadBag{},
+		eventsJobsList: map[string][]EventJob{},
 	}
 
 	return manager
@@ -44,11 +40,7 @@ func (m *EventsManager) Fire(e *Event) error {
 		return errors.New(fmt.Sprintf("event %v is not registered", e.Name))
 	}
 
-	for eName, bag := range m.eventsJobsList {
-		if eName == e.Name {
-			bag.payload = e.Payload
-		}
-	}
+	m.firedEvents = append(m.firedEvents, e)
 	return nil
 }
 
@@ -58,33 +50,31 @@ func (m *EventsManager) Register(eName string, job EventJob) {
 	}
 	_, exists := m.eventsJobsList[eName]
 	if !exists {
-		m.eventsJobsList[eName] = JobsAndPayloadBag{
-			eventJobs: []EventJob{job},
-			payload:   nil,
-		}
+		m.eventsJobsList[eName] = []EventJob{job}
 		return
 	}
 
-	for key, bag := range m.eventsJobsList {
+	for key, jobs := range m.eventsJobsList {
 		if key == eName {
-			bag.eventJobs = append(bag.eventJobs, job)
-			m.eventsJobsList[eName] = bag
+			jobs = append(jobs, job)
+			m.eventsJobsList[key] = jobs
 		}
 	}
 }
 
-func (m *EventsManager) executeEventsJobs() {
-	for eventName, bag := range m.eventsJobsList {
-		processEventsJobsExecution(eventName, bag)
+func (m *EventsManager) processFiredEvents() {
+	for _, event := range m.firedEvents {
+		m.executeEventJobs(event)
 	}
+	m.firedEvents = []*Event{}
 }
 
-func processEventsJobsExecution(eventName string, bag JobsAndPayloadBag) {
-	for _, job := range bag.eventJobs {
-		event := &Event{
-			Name:    eventName,
-			Payload: bag.payload,
+func (m *EventsManager) executeEventJobs(event *Event) {
+	for key, jobs := range m.eventsJobsList {
+		if key == event.Name {
+			for _, job := range jobs {
+				job(event, rqc)
+			}
 		}
-		job(event, rqc)
 	}
 }

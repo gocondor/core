@@ -59,7 +59,7 @@ func TestEvents(t *testing.T) {
 		f.Close()
 	})
 	m.Fire(&Event{Name: eventName1})
-	m.executeEventsJobs()
+	m.processFiredEvents()
 
 	ff, err := os.Open(tmpFile1)
 	if err != nil {
@@ -94,7 +94,7 @@ func TestEvents(t *testing.T) {
 		f.Close()
 	})
 	m.Fire(&Event{Name: eventName2})
-	m.executeEventsJobs()
+	m.processFiredEvents()
 
 	ff, err = os.Open(tmpFile2)
 	if err != nil {

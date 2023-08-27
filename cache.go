@@ -40,7 +40,7 @@ func NewCache(cacheConfig CacheConfig) *Cache {
 	}
 }
 
-func (c *Cache) Set(key string, value interface{}) error {
+func (c *Cache) Set(key string, value string) error {
 	err := c.redis.Set(ctx, key, value, 0).Err()
 	if err != nil {
 		return err
@@ -48,7 +48,7 @@ func (c *Cache) Set(key string, value interface{}) error {
 	return nil
 }
 
-func (c *Cache) SetWithExpiration(key string, value interface{}, expiration time.Duration) error {
+func (c *Cache) SetWithExpiration(key string, value string, expiration time.Duration) error {
 	err := c.redis.Set(ctx, key, value, expiration).Err()
 	if err != nil {
 		return err
@@ -56,10 +56,10 @@ func (c *Cache) SetWithExpiration(key string, value interface{}, expiration time
 	return nil
 }
 
-func (c *Cache) Get(key string) (interface{}, error) {
+func (c *Cache) Get(key string) (string, error) {
 	result, err := c.redis.Get(ctx, key).Result()
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 	return result, nil
 }

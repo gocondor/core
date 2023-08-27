@@ -217,7 +217,8 @@ func (c *Context) CastToString(value interface{}) string {
 	if !basicType(value) {
 		panic("can not cast to string")
 	}
-	return fmt.Sprintf("%s", value)
+
+	return fmt.Sprintf("%v", value)
 }
 
 func (c *Context) CastToInt(value interface{}) int {

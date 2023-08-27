@@ -197,6 +197,11 @@ func (app *App) makeHTTPRouterHandlerFunc(h Handler, ms []Middleware) httprouter
 			ct = CONTENT_TYPE_HTML
 		}
 		w.Header().Add(CONTENT_TYPE, ct)
+		statusCode := http.StatusOK
+		if ctx.Response.statusCode != 0 {
+			statusCode = ctx.Response.statusCode
+		}
+		w.WriteHeader(statusCode)
 		ResolveEventsManager().setContext(ctx).processFiredEvents()
 		w.Write(ctx.Response.body)
 
@@ -308,6 +313,9 @@ func (cn *chain) execute(ctx *Context) {
 
 func (app *App) combHandlers(h Handler, mw []Middleware) []interface{} {
 	var rev []interface{}
+	for _, k := range mw {
+		rev = append(rev, k)
+	}
 	rev = append(rev, h)
 	return rev
 }

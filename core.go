@@ -9,9 +9,11 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"path"
 	"path/filepath"
 	"runtime/debug"
 	"strconv"
+	"syscall"
 
 	"github.com/gocondor/core/env"
 	"github.com/gocondor/core/logger"
@@ -31,6 +33,7 @@ var gormC GormConfig
 var cacheC CacheConfig
 var db *gorm.DB
 var mailer *Mailer
+var basePath string
 
 type configContainer struct {
 	Request RequestConfig
@@ -339,10 +342,12 @@ func NewGorm() *gorm.DB {
 		db, err = postgresConnect()
 	case "sqlite":
 		sqlitePath := os.Getenv("SQLITE_DB_PATH")
-		if sqlitePath == "" {
-			panic("wrong path to sqlite file")
+		fullSqlitePath := path.Join(basePath, sqlitePath)
+		_, err := os.Stat(fullSqlitePath)
+		if err != nil {
+			panic(fmt.Sprintf("error locating sqlite file: %v", err.Error()))
 		}
-		db, err = gorm.Open(sqlite.Open(sqlitePath), &gorm.Config{})
+		db, err = gorm.Open(sqlite.Open(fullSqlitePath), &gorm.Config{})
 	default:
 		panic("database driver not selected")
 	}
@@ -481,6 +486,13 @@ func resolveLogger() func() *logger.Logger {
 	return f
 }
 
+func (app *App) MakeDirs(dirs ...string) {
+	syscall.Umask(0)
+	for _, dir := range dirs {
+		os.MkdirAll(path.Join(basePath, dir), 0766)
+	}
+}
+
 func (app *App) SetRequestConfig(r RequestConfig) {
 	requestC = r
 }
@@ -491,4 +503,8 @@ func (app *App) SetGormConfig(g GormConfig) {
 
 func (app *App) SetCacheConfig(c CacheConfig) {
 	cacheC = c
+}
+
+func (app *App) SetBasePath(path string) {
+	basePath = path
 }

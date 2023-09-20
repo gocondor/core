@@ -15,6 +15,7 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
+	"syscall"
 
 	"github.com/gocondor/core/logger"
 	"gorm.io/gorm"
@@ -108,8 +109,11 @@ func (c *Context) GetUploadedFile(name string) *UploadedFileInfo {
 	return uploadedFileInfo
 }
 
-func (c *Context) MoveFile(sourceFilePath string, destFolderPath string, newFileName string) error {
-	os.MkdirAll(destFolderPath, 666)
+func (c *Context) MoveFile(sourceFilePath string, destFolderPath string) error {
+	o := syscall.Umask(0)
+	defer syscall.Umask(o)
+	newFileName := filepath.Base(sourceFilePath)
+	os.MkdirAll(destFolderPath, 766)
 	srcFileInfo, err := os.Stat(sourceFilePath)
 	if err != nil {
 		return err
@@ -127,11 +131,11 @@ func (c *Context) MoveFile(sourceFilePath string, destFolderPath string, newFile
 	if err != nil {
 		return err
 	}
-	buff := make([]byte, 1024)
+	buff := make([]byte, 1024*8)
 	for {
 		n, err := srcFile.Read(buff)
 		if err != nil && err != io.EOF {
-			panic("error moving file")
+			panic(fmt.Sprintf("error moving file %v", sourceFilePath))
 		}
 		if n == 0 {
 			break
@@ -142,7 +146,6 @@ func (c *Context) MoveFile(sourceFilePath string, destFolderPath string, newFile
 		}
 	}
 	destFile.Close()
-	os.Chmod(filepath.Join(destFolderPath, newFileName), 0666)
 	err = os.Remove(sourceFilePath)
 	if err != nil {
 		return err
@@ -150,15 +153,17 @@ func (c *Context) MoveFile(sourceFilePath string, destFolderPath string, newFile
 	return nil
 }
 
-// TODO unittest
-func (c *Context) CopyFile(sourceFilePath string, destFolderPath string, newFileName string) error {
-	os.MkdirAll(destFolderPath, 644)
+func (c *Context) CopyFile(sourceFilePath string, destFolderPath string) error {
+	o := syscall.Umask(0)
+	defer syscall.Umask(o)
+	newFileName := filepath.Base(sourceFilePath)
+	os.MkdirAll(destFolderPath, 766)
 	srcFileInfo, err := os.Stat(sourceFilePath)
 	if err != nil {
 		return err
 	}
 	if !srcFileInfo.Mode().IsRegular() {
-		return errors.New("can not copy file, not in a regular mode")
+		return errors.New("can not move file, not in a regular mode")
 	}
 	srcFile, err := os.Open(sourceFilePath)
 	if err != nil {
@@ -166,25 +171,26 @@ func (c *Context) CopyFile(sourceFilePath string, destFolderPath string, newFile
 	}
 	defer srcFile.Close()
 	destFilePath := filepath.Join(destFolderPath, newFileName)
-	destFile, err := os.OpenFile(destFilePath, os.O_CREATE|os.O_RDWR|os.O_APPEND, 744)
+	destFile, err := os.Create(destFilePath)
 	if err != nil {
 		return err
 	}
-	defer destFile.Close()
-	buff := make([]byte, 100)
+	buff := make([]byte, 1024*8)
 	for {
 		n, err := srcFile.Read(buff)
 		if err != nil && err != io.EOF {
-			panic("error coping file")
+			panic(fmt.Sprintf("error moving file %v", sourceFilePath))
 		}
 		if n == 0 {
 			break
 		}
-		_, err = destFile.Write(buff)
+		_, err = destFile.Write(buff[:n])
 		if err != nil {
 			return err
 		}
 	}
+	destFile.Close()
+
 	return nil
 }
 
@@ -209,8 +215,7 @@ type UploadedFileInfo struct {
 }
 
 func (c *Context) GetBaseDirPath() string {
-	wd, _ := os.Getwd()
-	return wd
+	return basePath
 }
 
 func (c *Context) CastToString(value interface{}) string {

@@ -25,7 +25,7 @@ func newValidator() *Validator {
 	return v
 }
 
-func resolve() *Validator {
+func resolveValidator() *Validator {
 	return v
 }
 

@@ -16,6 +16,7 @@ type Response struct {
 	contentType         string
 	overrideContentType string
 	isTerminated        bool
+	redirectTo          string
 	HttpResponseWriter  http.ResponseWriter
 }
 
@@ -95,6 +96,25 @@ func (rs *Response) ForceSendResponse() {
 	rs.isTerminated = true
 }
 
+func (rs *Response) Redirect(url string) *Response {
+	validator := resolveValidator()
+	v := validator.Validate(map[string]interface{}{
+		"url": url,
+	}, map[string]interface{}{
+		"url": "url",
+	})
+	if v.Failed() {
+		if url[0:1] != "/" {
+			rs.redirectTo = "/" + url
+		} else {
+			rs.redirectTo = url
+		}
+		return rs
+	}
+	rs.redirectTo = url
+	return rs
+}
+
 func (rs *Response) castBasicVarsToString(data interface{}) string {
 	switch dataType := data.(type) {
 	case string:
@@ -158,4 +178,5 @@ func (rs *Response) reset() {
 	rs.contentType = CONTENT_TYPE_HTML
 	rs.overrideContentType = ""
 	rs.isTerminated = false
+	rs.redirectTo = ""
 }

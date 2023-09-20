@@ -32,6 +32,9 @@ func (m *EventsManager) setContext(requestContext *Context) *EventsManager {
 }
 
 func (m *EventsManager) Fire(e *Event) error {
+	if disableEvents {
+		return nil
+	}
 	if e.Name == "" {
 		return errors.New("event name is empty")
 	}
@@ -45,6 +48,9 @@ func (m *EventsManager) Fire(e *Event) error {
 }
 
 func (m *EventsManager) Register(eName string, job EventJob) {
+	if disableEvents {
+		return
+	}
 	if eName == "" {
 		panic("event name is empty")
 	}
@@ -63,6 +69,9 @@ func (m *EventsManager) Register(eName string, job EventJob) {
 }
 
 func (m *EventsManager) processFiredEvents() {
+	if disableEvents {
+		return
+	}
 	for _, event := range m.firedEvents {
 		m.executeEventJobs(event)
 	}

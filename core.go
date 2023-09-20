@@ -34,6 +34,7 @@ var cacheC CacheConfig
 var db *gorm.DB
 var mailer *Mailer
 var basePath string
+var disableEvents bool = false
 
 type configContainer struct {
 	Request RequestConfig
@@ -113,10 +114,6 @@ func (app *App) Run(router *httprouter.Router) {
 		return
 	}
 	if useHttps && !UseLetsEncrypt {
-		wd, err := os.Getwd()
-		if err != nil {
-			panic("can not get the current working dir")
-		}
 		CertFile := os.Getenv("App_CERT_FILE_PATH")
 		if CertFile == "" {
 			CertFile = "tls/server.crt"
@@ -125,8 +122,8 @@ func (app *App) Run(router *httprouter.Router) {
 		if KeyFile == "" {
 			KeyFile = "tls/server.key"
 		}
-		certFilePath := filepath.Join(wd, CertFile)
-		KeyFilePath := filepath.Join(wd, KeyFile)
+		certFilePath := filepath.Join(basePath, CertFile)
+		KeyFilePath := filepath.Join(basePath, KeyFile)
 		log.Fatal(http.ListenAndServeTLS(":443", certFilePath, KeyFilePath, router))
 		return
 	}
@@ -172,6 +169,7 @@ func (app *App) makeHTTPRouterHandlerFunc(h Handler, ms []Middleware) httprouter
 				overrideContentType: "",
 				HttpResponseWriter:  w,
 				isTerminated:        false,
+				redirectTo:          "",
 			},
 			GetValidator:     getValidator(),
 			GetJWT:           getJWT(),
@@ -200,13 +198,18 @@ func (app *App) makeHTTPRouterHandlerFunc(h Handler, ms []Middleware) httprouter
 			ct = CONTENT_TYPE_HTML
 		}
 		w.Header().Add(CONTENT_TYPE, ct)
-		statusCode := http.StatusOK
 		if ctx.Response.statusCode != 0 {
-			statusCode = ctx.Response.statusCode
+			w.WriteHeader(ctx.Response.statusCode)
 		}
-		w.WriteHeader(statusCode)
-		ResolveEventsManager().setContext(ctx).processFiredEvents()
-		w.Write(ctx.Response.body)
+		if ctx.Response.redirectTo != "" {
+			http.Redirect(w, r, ctx.Response.redirectTo, http.StatusPermanentRedirect)
+		} else {
+			w.Write(ctx.Response.body)
+		}
+		e := ResolveEventsManager()
+		if e != nil {
+			e.setContext(ctx).processFiredEvents()
+		}
 
 		app.t = 0
 		ctx.Response.reset()
@@ -236,6 +239,24 @@ func (n methodNotAllowed) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 var panicHandler = func(w http.ResponseWriter, r *http.Request, e interface{}) {
+	isDebugModeStr := os.Getenv("APP_DEBUG_MODE")
+	isDebugMode, err := strconv.ParseBool(isDebugModeStr)
+	if err != nil {
+		errStr := "error parsing env var APP_DEBUG_MODE"
+		loggr.Error(errStr)
+		fmt.Sprintln(errStr)
+		w.Write([]byte(errStr))
+		return
+	}
+	if !isDebugMode {
+		errStr := "internal error"
+		loggr.Error(errStr)
+		fmt.Sprintln(errStr)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Header().Add(CONTENT_TYPE, CONTENT_TYPE_JSON)
+		w.Write([]byte(fmt.Sprintf("{\"message\": \"%v\"}", errStr)))
+		return
+	}
 	shrtMsg := fmt.Sprintf("%v", e)
 	loggr.Error(shrtMsg)
 	fmt.Println(shrtMsg)
@@ -487,7 +508,8 @@ func resolveLogger() func() *logger.Logger {
 }
 
 func (app *App) MakeDirs(dirs ...string) {
-	syscall.Umask(0)
+	o := syscall.Umask(0)
+	defer syscall.Umask(o)
 	for _, dir := range dirs {
 		os.MkdirAll(path.Join(basePath, dir), 0766)
 	}
@@ -507,4 +529,12 @@ func (app *App) SetCacheConfig(c CacheConfig) {
 
 func (app *App) SetBasePath(path string) {
 	basePath = path
+}
+
+func DisableEvents() {
+	disableEvents = true
+}
+
+func EnableEvents() {
+	disableEvents = false
 }

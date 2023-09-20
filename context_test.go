@@ -9,9 +9,10 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"os"
+	"path"
 	"path/filepath"
-	"runtime"
 	"strings"
+	"syscall"
 	"testing"
 
 	"github.com/gocondor/core/logger"
@@ -172,7 +173,9 @@ func TestGetPathParams(t *testing.T) {
 }
 
 func TestGetRequestParams(t *testing.T) {
+	pwd, _ := os.Getwd()
 	app := New()
+	app.SetBasePath(pwd)
 	hr := httprouter.New()
 	gcr := NewRouter()
 	gcr.Post("/pt", Handler(func(c *Context) *Response {
@@ -185,10 +188,11 @@ func TestGetRequestParams(t *testing.T) {
 	}))
 	hr = app.RegisterRoutes(gcr.GetRoutes(), hr)
 	s := httptest.NewServer(hr)
+	client := s.Client()
 	defer s.Close()
-	rsp, err := http.PostForm(s.URL+"/pt", url.Values{"param": {"paramValPost"}})
+	rsp, err := client.PostForm(s.URL+"/pt", url.Values{"param": {"paramValPost"}})
 	if err != nil {
-		t.Logf("failed test get request params")
+		t.Errorf("failed test get request params: %v", err)
 	}
 
 	b, err := io.ReadAll(rsp.Body)
@@ -356,29 +360,54 @@ func TestGetUploadedFile(t *testing.T) {
 }
 
 func TestMoveFile(t *testing.T) {
+	o := syscall.Umask(0)
+	defer syscall.Umask(o)
 	pwd, _ := os.Getwd()
 	var tmpDir string
-	if runtime.GOOS == "linux" {
-		tmpDir = t.TempDir()
-	} else {
-		tmpDir = filepath.Join(pwd, "/testingdata/tmp")
-	}
-	fi, err := os.Stat(filepath.Join("./testingdata", "totestmovefile.md"))
+	tmpDir = path.Join(pwd, "testingdata/tmp")
+	_, err := os.Stat(path.Join("./testingdata", "totestmovefile.md"))
 	if err != nil {
 		t.Errorf("failed test move file: %v", err.Error())
 	}
 
 	c := makeCTX(t)
-	err = c.MoveFile("./testingdata/totestmovefile.md", tmpDir, "totestmovefile.md")
+	err = c.MoveFile("./testingdata/totestmovefile.md", tmpDir)
 	if err != nil {
-		t.Error(err.Error())
+		t.Errorf("failed test move file: %v", err.Error())
 	}
-	if fi.Name() != "totestmovefile.md" {
-		t.Errorf("failed test move file")
+
+	_, err = os.Stat(path.Join(tmpDir, "totestmovefile.md"))
+	if err != nil {
+		t.Errorf("failed test move file: %v", err.Error())
 	}
 	t.Cleanup(func() {
-		c.MoveFile(filepath.Join(tmpDir, "totestmovefile.md"), "./testingdata", "totestmovefile.md")
-		os.Remove(filepath.Join(tmpDir, "totestmovefile.md"))
+		c.MoveFile(filepath.Join(tmpDir, "totestmovefile.md"), "./testingdata")
+	})
+}
+
+func TestCopyFile(t *testing.T) {
+	o := syscall.Umask(0)
+	defer syscall.Umask(o)
+	pwd, _ := os.Getwd()
+	var tmpDir string
+	tmpDir = path.Join(pwd, "testingdata/tmp")
+	_, err := os.Stat(path.Join("./testingdata", "totestcopyfile.md"))
+	if err != nil {
+		t.Errorf("failed test move file: %v", err.Error())
+	}
+
+	c := makeCTX(t)
+	err = c.CopyFile("./testingdata/totestcopyfile.md", tmpDir)
+	if err != nil {
+		t.Errorf("failed test move file: %v", err.Error())
+	}
+
+	_, err = os.Stat(path.Join(tmpDir, "totestcopyfile.md"))
+	if err != nil {
+		t.Errorf("failed test move file: %v", err.Error())
+	}
+	t.Cleanup(func() {
+		os.Remove(filepath.Join(tmpDir, "totestcopyfile.md"))
 	})
 }
 

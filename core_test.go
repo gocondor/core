@@ -502,6 +502,7 @@ func TestRegisterHeadRoute(t *testing.T) {
 }
 
 func TestPanicHandler(t *testing.T) {
+	os.Setenv("APP_DEBUG_MODE", "true")
 	loggr = logger.NewLogger(&logger.LogNullDriver{})
 	r := httptest.NewRequest(GET, LOCALHOST, nil)
 	w := httptest.NewRecorder()

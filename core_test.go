@@ -225,7 +225,7 @@ func makeCTX(t *testing.T) *Context {
 	t.Helper()
 	return &Context{
 		Request: &Request{
-			HttpRequest:    httptest.NewRequest(GET, LOCALHOST, nil),
+			httpRequest:    httptest.NewRequest(GET, LOCALHOST, nil),
 			httpPathParams: nil,
 		},
 		Response: &Response{

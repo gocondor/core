@@ -25,7 +25,7 @@ func TestDebugAny(t *testing.T) {
 	w := httptest.NewRecorder()
 	c := &Context{
 		Request: &Request{
-			HttpRequest:    r,
+			httpRequest:    r,
 			httpPathParams: nil,
 		},
 		Response: &Response{
@@ -538,7 +538,7 @@ func makeCTXLogTestCTX(t *testing.T, w http.ResponseWriter, r *http.Request, tmp
 	t.Helper()
 	return &Context{
 		Request: &Request{
-			HttpRequest:    r,
+			httpRequest:    r,
 			httpPathParams: nil,
 		},
 		Response: &Response{

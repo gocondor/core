@@ -159,7 +159,7 @@ func (app *App) makeHTTPRouterHandlerFunc(h Handler, ms []Middleware) httprouter
 	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 		ctx := &Context{
 			Request: &Request{
-				HttpRequest:    r,
+				httpRequest:    r,
 				httpPathParams: ps,
 			},
 			Response: &Response{
@@ -173,7 +173,7 @@ func (app *App) makeHTTPRouterHandlerFunc(h Handler, ms []Middleware) httprouter
 			},
 			GetValidator:     getValidator(),
 			GetJWT:           getJWT(),
-			GetGorm:          GetGormFunc(),
+			GetGorm:          getGormFunc(),
 			GetCache:         resolveCache(),
 			GetHashing:       resloveHashing(),
 			GetMailer:        resolveMailer(),
@@ -344,7 +344,7 @@ func (app *App) combHandlers(h Handler, mw []Middleware) []interface{} {
 	return rev
 }
 
-func GetGormFunc() func() *gorm.DB {
+func getGormFunc() func() *gorm.DB {
 	f := func() *gorm.DB {
 		if !gormC.EnableGorm {
 			panic("you are trying to use gorm but it's not enabled, you can enable it in the file config/gorm.go")

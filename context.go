@@ -52,7 +52,7 @@ func (c *Context) Next() {
 }
 
 func (c *Context) prepare(ctx *Context) {
-	ctx.Request.HttpRequest.ParseMultipartForm(int64(app.Config.Request.MaxUploadFileSize))
+	ctx.Request.httpRequest.ParseMultipartForm(int64(app.Config.Request.MaxUploadFileSize))
 }
 
 func (c *Context) GetPathParam(key string) interface{} {
@@ -60,19 +60,19 @@ func (c *Context) GetPathParam(key string) interface{} {
 }
 
 func (c *Context) GetRequestParam(key string) interface{} {
-	return c.Request.HttpRequest.FormValue(key)
+	return c.Request.httpRequest.FormValue(key)
 }
 
 func (c *Context) RequestParamExists(key string) interface{} {
-	return c.Request.HttpRequest.Form.Has(key)
+	return c.Request.httpRequest.Form.Has(key)
 }
 
 func (c *Context) GetHeader(key string) string {
-	return c.Request.HttpRequest.Header.Get(key)
+	return c.Request.httpRequest.Header.Get(key)
 }
 
 func (c *Context) GetUploadedFile(name string) *UploadedFileInfo {
-	file, fileHeader, err := c.Request.HttpRequest.FormFile(name)
+	file, fileHeader, err := c.Request.httpRequest.FormFile(name)
 	if err != nil {
 		panic(fmt.Sprintf("error with file,[%v]", err.Error()))
 	}
@@ -224,6 +224,10 @@ func (c *Context) CastToString(value interface{}) string {
 	}
 
 	return fmt.Sprintf("%v", value)
+}
+
+func (c Context) GetUserAgent() string {
+	return c.Request.httpRequest.UserAgent()
 }
 
 func (c *Context) CastToInt(value interface{}) int {

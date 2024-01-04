@@ -63,7 +63,7 @@ func (c *Context) GetRequestParam(key string) interface{} {
 	return c.Request.httpRequest.FormValue(key)
 }
 
-func (c *Context) RequestParamExists(key string) interface{} {
+func (c *Context) RequestParamExists(key string) bool {
 	return c.Request.httpRequest.Form.Has(key)
 }
 
